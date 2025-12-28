@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Learning Sandbox</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #0db7ed; /* Docker Blue */
+            --primary-glow: rgba(13, 183, 237, 0.4);
+            --secondary: #38bdf8;
+            --accent: #a855f7;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Abstract Background Glows */
+        .glow-orb {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--primary-glow) 0%, rgba(13, 183, 237, 0) 70%);
+            top: -100px;
+            left: -100px;
+            z-index: 0;
+            filter: blur(40px);
+            animation: float-slow 15s infinite alternate;
+        }
+
+        .glow-orb-2 {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.2) 0%, rgba(168, 85, 247, 0) 70%);
+            bottom: -150px;
+            right: -100px;
+            z-index: 0;
+            filter: blur(50px);
+            animation: float-slow 20s infinite alternate-reverse;
+        }
+
+        @keyframes float-slow {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        /* Glassmorphism Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 800px;
+            width: 90%;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            text-align: center;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Docker Icon Animation */
+        .logo-container {
+            margin-bottom: 2rem;
+            display: inline-block;
+            position: relative;
+        }
+
+        .docker-logo {
+            width: 120px;
+            height: auto;
+            filter: drop-shadow(0 0 20px var(--primary-glow));
+            animation: gentle-bob 4s ease-in-out infinite;
+        }
+
+        @keyframes gentle-bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 30%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+            text-align: left;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(13, 183, 237, 0.3);
+            background: rgba(13, 183, 237, 0.02);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .info-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Commands box */
+        .terminal-box {
+            background: #060913;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin: 2rem 0;
+            text-align: left;
+            position: relative;
+        }
+
+        .terminal-header {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .terminal-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .td-red { background: #ef4444; }
+        .td-yellow { background: #eab308; }
+        .td-green { background: #22c55e; }
+
+        .terminal-content {
+            font-family: 'Space Grotesk', monospace;
+            color: #38bdf8;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .terminal-prompt {
+            color: var(--text-muted);
+            user-select: none;
+        }
+
+        .terminal-cmd {
+            color: #f3f4f6;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 3rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            z-index: 10;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        footer a:hover {
+            color: var(--secondary);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="glow-orb"></div>
+    <div class="glow-orb-2"></div>
+
+    <div class="container">
+        <div class="logo-container">
+            <!-- SVG representation of Docker Logo for zero external dependency -->
+            <svg class="docker-logo" viewBox="0 0 24 24" fill="var(--primary)" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.962 6.075c.083-.03.174-.03.256 0l2.368.854a.39.39 0 0 1 .256.366v1.936a.39.39 0 0 1-.256.366l-2.368.854a.377.377 0 0 1-.256 0l-2.368-.854a.39.39 0 0 1-.256-.366V7.295c0-.164.103-.312.256-.366l2.368-.854zM8.374 8.167c.083-.03.174-.03.256 0l2.368.854a.39.39 0 0 1 .256.366v1.936a.39.39 0 0 1-.256.366l-2.368.854a.377.377 0 0 1-.256 0l-2.368-.854a.39.39 0 0 1-.256-.366V9.387c0-.164.103-.312.256-.366l2.368-.854zm5.588.03c.083-.03.174-.03.256 0l2.368.854a.39.39 0 0 1 .256.366v1.936a.39.39 0 0 1-.256.366l-2.368.854a.377.377 0 0 1-.256 0l-2.368-.854a.39.39 0 0 1-.256-.366V9.387c0-.164.103-.312.256-.366l2.368-.854zM2.787 10.259c.083-.03.174-.03.256 0l2.368.854a.39.39 0 0 1 .256.366v1.936a.39.39 0 0 1-.256.366l-2.368.854a.377.377 0 0 1-.256 0l-2.368-.854a.39.39 0 0 1-.256-.366V11.48c0-.165.103-.313.256-.366l2.368-.854zm5.587.03c.083-.03.174-.03.256 0l2.368.854a.39.39 0 0 1 .256.366v1.936a.39.39 0 0 1-.256.366l-2.368.854a.377.377 0 0 1-.256 0l-2.368-.854a.39.39 0 0 1-.256-.366V11.48c0-.165.103-.313.256-.366l2.368-.854zm5.588 0c.083-.03.174-.03.256 0l2.368.854a.39.39 0 0 1 .256.366v1.936a.39.39 0 0 1-.256.366l-2.368.854a.377.377 0 0 1-.256 0l-2.368-.854a.39.39 0 0 1-.256-.366V11.48c0-.165.103-.313.256-.366l2.368-.854zM2.787 12.383c.083-.03.174-.03.256 0l2.368.854a.39.39 0 0 1 .256.366v1.936a.39.39 0 0 1-.256.366l-2.368.854a.377.377 0 0 1-.256 0l-2.368-.854a.39.39 0 0 1-.256-.366v-1.936c0-.165.103-.313.256-.366l2.368-.854zm5.587 0c.083-.03.174-.03.256 0l2.368.854a.39.39 0 0 1 .256.366v1.936a.39.39 0 0 1-.256.366l-2.368.854a.377.377 0 0 1-.256 0l-2.368-.854a.39.39 0 0 1-.256-.366v-1.936c0-.165.103-.313.256-.366l2.368-.854zm12.389-.854a.39.39 0 0 1 .256.366v1.936a.39.39 0 0 1-.256.366l-2.368.854a.377.377 0 0 1-.256 0l-2.368-.854a.39.39 0 0 1-.256-.366V11.89c0-.164.103-.312.256-.366l2.368-.854z"/>
+                <path d="M0 16.5c0-.828.672-1.5 1.5-1.5h18.3c1.767 0 3.2 1.433 3.2 3.2 0 2.2-1.8 4-4 4H4c-2.2 0-4-1.8-4-4v-1.7zm1.5-.5a.5.5 0 0 0-.5.5v1.7c0 1.657 1.343 3 3 3h15c1.657 0 3-1.343 3-3 0-1.215-.985-2.2-2.2-2.2H1.5z"/>
+            </svg>
+        </div>
+
+        <div class="status-badge">
+            <span class="status-dot"></span>
+            <span>Containerized with Docker</span>
+        </div>
+
+        <h1>Hello from Nginx inside Docker!</h1>
+        <p class="subtitle">
+            You successfully built a Docker image using your custom <code>Dockerfile</code> and launched it in an isolated container environment.
+        </p>
+
+        <div class="terminal-box">
+            <div class="terminal-header">
+                <span class="terminal-dot td-red"></span>
+                <span class="terminal-dot td-yellow"></span>
+                <span class="terminal-dot td-green"></span>
+            </div>
+            <div class="terminal-content">
+                <span class="terminal-prompt">$</span> <span class="terminal-cmd">docker ps</span><br>
+                <span>CONTAINER ID   IMAGE           COMMAND                  CREATED         STATUS         PORTS</span><br>
+                <span style="color: #a855f7;">a1b2c3d4e5f6</span>   <span style="color: var(--primary);">docker-learning</span> <span style="color: var(--text-muted);">"/docker-entrypoint.…"</span>   <span style="color: var(--text-muted);">3 minutes ago</span>   <span style="color: #10b981;">Up 3 minutes</span>   <span style="color: #eab308;">0.0.0.0:8080->80/tcp</span>
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>📦 Lightweight</h3>
+                <p>Built on top of Nginx Alpine, resulting in a minimal memory and storage footprint.</p>
+            </div>
+            <div class="info-card">
+                <h3>🚀 Fast</h3>
+                <p>Containers start up instantly as they run as isolated processes directly on the host OS.</p>
+            </div>
+            <div class="info-card">
+                <h3>🔒 Secure</h3>
+                <p>Process-level isolation separates your web application from other applications on the system.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        Designed & built inside <a href="https://github.com/04amanrajj/Docker-learning" target="_blank">Docker-learning Sandbox</a>
+    </footer>
+</body>
+</html>
