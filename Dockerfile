@@ -11,7 +11,5 @@ COPY index.html .
 # Step 4: Expose port 80 so the container can receive web traffic on this port
 EXPOSE 80
 
-# Step 5: The default command to run when the container starts is already defined 
-# in the official Nginx base image, so we don't strictly need to specify CMD.
-# But here is what it does under the hood to start the Nginx server in the foreground:
-# CMD ["nginx", "-g", "daemon off;"]
+# Step 5: Start Nginx and print a friendly startup message
+CMD ["/bin/sh", "-c", "echo 'Sandbox container started successfully!' && echo 'Locate the web page at: http://localhost:8080' && nginx -g 'daemon off;'"]
