@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 2: Docker Container Lifecycle Sandbox</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #080b11;
+            --card-bg: rgba(13, 18, 30, 0.75);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #0db7ed; /* Docker Blue */
+            --primary-glow: rgba(13, 183, 237, 0.35);
+            --secondary: #10b981; /* Success Green */
+            --amber: #f59e0b; /* Warning Yellow */
+            --rose: #f43f5e; /* Danger Red */
+            --purple: #a855f7; /* Accent Purple */
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+            padding: 2rem 1rem;
+        }
+
+        /* Ambient Glowing Backgrounds */
+        .glow-orb {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--primary-glow) 0%, rgba(13, 183, 237, 0) 70%);
+            top: -200px;
+            left: -150px;
+            z-index: 0;
+            filter: blur(50px);
+            animation: float-slow 20s infinite alternate;
+        }
+
+        .glow-orb-2 {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0) 70%);
+            bottom: -200px;
+            right: -150px;
+            z-index: 0;
+            filter: blur(60px);
+            animation: float-slow 25s infinite alternate-reverse;
+        }
+
+        @keyframes float-slow {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(60px, 40px) scale(1.1); }
+        }
+
+        /* Glassmorphism Layout */
+        .wrapper {
+            position: relative;
+            z-index: 10;
+            max-width: 1000px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(13, 183, 237, 0.1);
+            border: 1px solid rgba(13, 183, 237, 0.2);
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 40%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Glass Cards */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 2.25rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Container Simulator Box */
+        .simulator-display {
+            background: rgba(5, 7, 12, 0.6);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
+            position: relative;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Container box styling for different states */
+        .container-box {
+            width: 140px;
+            height: 140px;
+            border-radius: 20px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .container-box.state-offline {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.2);
+            transform: scale(0.95);
+            opacity: 0.5;
+        }
+
+        .container-box.state-created {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(13, 183, 237, 0.1);
+            animation: pulse-border-blue 2s infinite;
+        }
+
+        .container-box.state-running {
+            border: 2px solid var(--secondary);
+            background: rgba(16, 185, 129, 0.03);
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.2),
+                        inset 0 0 15px rgba(16, 185, 129, 0.05);
+            transform: scale(1.05);
+        }
+
+        .container-box.state-paused {
+            border: 2px dashed var(--purple);
+            background: rgba(168, 85, 247, 0.02);
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.15);
+            transform: scale(1);
+        }
+
+        .container-box.state-stopped {
+            border: 2px solid var(--amber);
+            background: rgba(245, 158, 11, 0.02);
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.15);
+            transform: scale(0.98);
+        }
+
+        @keyframes pulse-border-blue {
+            0% { box-shadow: 0 0 10px rgba(13, 183, 237, 0.1); }
+            50% { box-shadow: 0 0 25px rgba(13, 183, 237, 0.3); }
+            100% { box-shadow: 0 0 10px rgba(13, 183, 237, 0.1); }
+        }
+
+        .container-icon {
+            font-size: 2.8rem;
+            transition: all 0.3s;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }
+
+        .state-offline .container-icon { color: var(--text-muted); opacity: 0.5; }
+        .state-created .container-icon { color: var(--primary); animation: bob 3s ease-in-out infinite; }
+        .state-running .container-icon { color: var(--secondary); animation: bob 2s ease-in-out infinite; }
+        .state-paused .container-icon { color: var(--purple); }
+        .state-stopped .container-icon { color: var(--amber); }
+
+        @keyframes bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .container-label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 8px;
+        }
+
+        .state-offline .container-label { color: var(--text-muted); }
+        .state-created .container-label { color: var(--primary); }
+        .state-running .container-label { color: var(--secondary); }
+        .state-paused .container-label { color: var(--purple); }
+        .state-stopped .container-label { color: var(--amber); }
+
+        /* Realtime telemetry inside simulator */
+        .telemetry-row {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .telemetry-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+
+        .telemetry-val {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .telemetry-lbl {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        /* Simulator Actions Panel */
+        .action-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 10px;
+            margin-top: 1.5rem;
+        }
+
+        .btn-action {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-action:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn-action:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-action:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+
+        .btn-action span.cmd-icon {
+            font-size: 1.1rem;
+        }
+
+        /* Highlighting active commands */
+        .btn-action.btn-run:hover:not(:disabled) { border-color: var(--secondary); color: var(--secondary); box-shadow: 0 0 15px rgba(16, 185, 129, 0.15); }
+        .btn-action.btn-stop:hover:not(:disabled) { border-color: var(--amber); color: var(--amber); box-shadow: 0 0 15px rgba(245, 158, 11, 0.15); }
+        .btn-action.btn-pause:hover:not(:disabled) { border-color: var(--purple); color: var(--purple); box-shadow: 0 0 15px rgba(168, 85, 247, 0.15); }
+        .btn-action.btn-rm:hover:not(:disabled) { border-color: var(--rose); color: var(--rose); box-shadow: 0 0 15px rgba(244, 63, 94, 0.15); }
+
+        /* Simulator Terminal */
+        .sim-terminal {
+            background: #03060c;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+            text-align: left;
+            min-height: 180px;
+            max-height: 220px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .terminal-hdr {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .term-dots { display: flex; gap: 6px; }
+
+        .term-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'Space Grotesk', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .terminal-log {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #38bdf8;
+            white-space: pre-wrap;
+        }
+
+        .log-prompt { color: var(--text-muted); user-select: none; }
+        .log-cmd { color: #fff; font-weight: 600; }
+        .log-out { color: #93c5fd; }
+        .log-sys { color: var(--secondary); }
+        .log-err { color: var(--rose); }
+
+        /* Lifecycle Guide (Sidebar) */
+        .lifecycle-guide {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .guide-step {
+            display: flex;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 1.25rem;
+            transition: all 0.3s;
+        }
+
+        .guide-step:hover {
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.06);
+            transform: translateX(5px);
+        }
+
+        .step-indicator {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .step-created { background: rgba(13, 183, 237, 0.1); color: var(--primary); border: 1px solid rgba(13, 183, 237, 0.2); }
+        .step-running { background: rgba(16, 185, 129, 0.1); color: var(--secondary); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .step-paused { background: rgba(168, 85, 247, 0.1); color: var(--purple); border: 1px solid rgba(168, 85, 247, 0.2); }
+        .step-stopped { background: rgba(245, 158, 11, 0.1); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.2); }
+        .step-deleted { background: rgba(244, 63, 94, 0.1); color: var(--rose); border: 1px solid rgba(244, 63, 94, 0.2); }
+
+        .step-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .step-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .step-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Bottom Section: Mini Project CLI */
+        .project-section {
+            width: 100%;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            background: rgba(13, 183, 237, 0.08);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Interactive instruction panel */
+        .cmd-display-box {
+            background: #04070d;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .cmd-line {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 1rem;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .cmd-line button.btn-copy {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cmd-line button.btn-copy:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+
+        .cmd-explain {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-top: 1rem;
+            border-left: 2px solid var(--primary);
+            padding-left: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 4rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            z-index: 10;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        footer a:hover {
+            color: var(--secondary);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="glow-orb"></div>
+    <div class="glow-orb-2"></div>
+
+    <div class="wrapper">
+        <header>
+            <div class="badge">Week 1 • Day 2</div>
+            <h1>Container Lifecycle Sandbox</h1>
+            <p class="subtitle">
+                Master the full lifespan of a Docker container. Simulate state transitions interactively using core lifecycle commands, then run a real Ubuntu sandbox project in your terminal.
+            </p>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Left Side: Simulator -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z"/></svg>
+                        Interactive Simulator
+                    </h2>
+                    <span id="state-badge" style="font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px; background: rgba(255,255,255,0.05); text-transform: uppercase;">
+                        Status: Offline
+                    </span>
+                </div>
+
+                <div class="simulator-display">
+                    <div id="visual-container" class="container-box state-offline">
+                        <div class="container-icon">📦</div>
+                        <div class="container-label">Offline</div>
+                    </div>
+
+                    <div class="telemetry-row">
+                        <div class="telemetry-item">
+                            <span id="tele-cpu" class="telemetry-val">0%</span>
+                            <span class="telemetry-lbl">CPU Usage</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span id="tele-ram" class="telemetry-val">0 MB</span>
+                            <span class="telemetry-lbl">Memory (RAM)</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span id="tele-pid" class="telemetry-val">-</span>
+                            <span class="telemetry-lbl">PID 1 State</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-controls">
+                    <button id="btn-run" class="btn-action btn-run" onclick="triggerAction('run')">
+                        <span class="cmd-icon">🚀</span>
+                        <code>docker run</code>
+                    </button>
+                    <button id="btn-pause" class="btn-action btn-pause" onclick="triggerAction('pause')" disabled>
+                        <span class="cmd-icon">⏸️</span>
+                        <code>docker pause</code>
+                    </button>
+                    <button id="btn-stop" class="btn-action btn-stop" onclick="triggerAction('stop')" disabled>
+                        <span class="cmd-icon">⏹️</span>
+                        <code>docker stop</code>
+                    </button>
+                    <button id="btn-start" class="btn-action btn-run" onclick="triggerAction('start')" disabled>
+                        <span class="cmd-icon">▶️</span>
+                        <code>docker start</code>
+                    </button>
+                    <button id="btn-rm" class="btn-action btn-rm" onclick="triggerAction('rm')" disabled>
+                        <span class="cmd-icon">🗑️</span>
+                        <code>docker rm</code>
+                    </button>
+                </div>
+
+                <div class="sim-terminal">
+                    <div class="terminal-hdr">
+                        <div class="term-dots">
+                            <span class="terminal-dot td-red"></span>
+                            <span class="terminal-dot td-yellow"></span>
+                            <span class="terminal-dot td-green"></span>
+                        </div>
+                        <span class="term-title">Simulator Logs</span>
+                        <span style="cursor: pointer; font-size: 0.7rem; color: var(--text-muted);" onclick="clearLogs()">Clear</span>
+                    </div>
+                    <div id="terminal-log" class="terminal-log">Waiting for you to run `docker run` to boot up a new container...</div>
+                </div>
+            </div>
+
+            <!-- Right Side: Guide -->
+            <div class="lifecycle-guide">
+                <div class="guide-step">
+                    <div class="step-indicator step-created">1</div>
+                    <div class="step-info">
+                        <span class="step-name">Created</span>
+                        <span class="step-desc">The container is isolated and generated from the Docker image, but has not yet started executing its main process (PID 1).</span>
+                    </div>
+                </div>
+                <div class="guide-step">
+                    <div class="step-indicator step-running">2</div>
+                    <div class="step-info">
+                        <span class="step-name">Running</span>
+                        <span class="step-desc">The main process is active and running. The container consumes CPU, RAM, and network namespaces. Stays active as long as PID 1 is alive.</span>
+                    </div>
+                </div>
+                <div class="guide-step">
+                    <div class="step-indicator step-paused">3</div>
+                    <div class="step-info">
+                        <span class="step-name">Paused</span>
+                        <span class="step-desc">CPU execution of processes inside the container is suspended using cgroups freezer. Memory state is fully preserved, but no instructions run.</span>
+                    </div>
+                </div>
+                <div class="guide-step">
+                    <div class="step-indicator step-stopped">4</div>
+                    <div class="step-info">
+                        <span class="step-name">Stopped</span>
+                        <span class="step-desc">The main process is terminated (sent SIGTERM, then SIGKILL). The container configuration and writeable filesystem layer remain intact, but it is inactive.</span>
+                    </div>
+                </div>
+                <div class="guide-step">
+                    <div class="step-indicator step-deleted">5</div>
+                    <div class="step-info">
+                        <span class="step-name">Deleted</span>
+                        <span class="step-desc">The container's writeable read-write container layer is destroyed and deleted. Its storage footprint is freed up. Gone completely.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Section: Mini Project CLI Instructions -->
+        <div class="glass-card project-section">
+            <h2 class="card-title" style="margin-bottom: 1rem;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                Mini Project: Practice Container Lifecycle in Terminal
+            </h2>
+            <p class="subtitle" style="margin-bottom: 1.5rem; text-align: left; margin-left: 0;">
+                Now that you understand the theory, build a custom interactive **Ubuntu 24.04** container and practice executing commands inside it.
+            </p>
+
+            <div class="tab-nav">
+                <button id="tbtn-build" class="tab-btn active" onclick="switchTab('build')">1. Build Sandbox Image</button>
+                <button id="tbtn-run" class="tab-btn" onclick="switchTab('run')">2. Launch & Monitor</button>
+                <button id="tbtn-exec" class="tab-btn" onclick="switchTab('exec')">3. Interact (Exec)</button>
+                <button id="tbtn-lifecycle" class="tab-btn" onclick="switchTab('lifecycle')">4. Lifecycle Clean up</button>
+            </div>
+
+            <!-- Tab 1: Build -->
+            <div id="tab-build" class="tab-content active">
+                <div class="cmd-display-box">
+                    <div class="cmd-line">
+                        <span>$ docker build -t ubuntu-learning ./week-1/day-2</span>
+                        <button class="btn-copy" onclick="copyText('docker build -t ubuntu-learning ./week-1/day-2')">Copy</button>
+                    </div>
+                    <div class="cmd-explain">
+                        <strong>Explanation:</strong> This reads the <code>Dockerfile</code> inside the <code>week-1/day-2</code> directory, pulls the official lightweight <strong>Ubuntu 24.04</strong> LTS image, installs utilities like <code>curl</code> and <code>procps</code>, and packages our custom startup script.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Run & Monitor -->
+            <div id="tab-run" class="tab-content">
+                <div class="cmd-display-box">
+                    <div class="cmd-line">
+                        <span>$ docker run -d --name ubuntu-sandbox ubuntu-learning</span>
+                        <button class="btn-copy" onclick="copyText('docker run -d --name ubuntu-sandbox ubuntu-learning')">Copy</button>
+                    </div>
+                    <div class="cmd-explain">
+                        <strong>Explanation:</strong> Launches the container in <strong>detached (background)</strong> mode (<code>-d</code>) and names it <code>ubuntu-sandbox</code>. It will run the welcome script and remain alive in the background.
+                    </div>
+                </div>
+                <div class="cmd-display-box" style="margin-top: 10px;">
+                    <div class="cmd-line">
+                        <span>$ docker ps</span>
+                        <button class="btn-copy" onclick="copyText('docker ps')">Copy</button>
+                    </div>
+                    <div class="cmd-explain">
+                        <strong>Explanation:</strong> Lists active running containers. You will see <code>ubuntu-sandbox</code> is up, displaying its container ID and names.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Exec -->
+            <div id="tab-exec" class="tab-content">
+                <div class="cmd-display-box">
+                    <div class="cmd-line">
+                        <span>$ docker exec -it ubuntu-sandbox bash</span>
+                        <button class="btn-copy" onclick="copyText('docker exec -it ubuntu-sandbox bash')">Copy</button>
+                    </div>
+                    <div class="cmd-explain">
+                        <strong>Explanation:</strong> Opens a secure, interactive command shell (<code>bash</code>) inside your running Ubuntu container. The <code>-it</code> flags keep the shell input/output interactive. Run commands like <code>apt-get update</code>, <code>top</code>, or <code>hostname</code> once inside!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Lifecycle -->
+            <div id="tab-lifecycle" class="tab-content">
+                <div class="cmd-display-box">
+                    <div class="cmd-line">
+                        <span>$ docker stop ubuntu-sandbox</span>
+                        <button class="btn-copy" onclick="copyText('docker stop ubuntu-sandbox')">Copy</button>
+                    </div>
+                    <div class="cmd-explain">
+                        <strong>Explanation:</strong> Shuts down the container by terminating its main process. The container will move to the <strong>Stopped (Exited)</strong> state.
+                    </div>
+                </div>
+                <div class="cmd-display-box" style="margin-top: 10px;">
+                    <div class="cmd-line">
+                        <span>$ docker rm ubuntu-sandbox</span>
+                        <button class="btn-copy" onclick="copyText('docker rm ubuntu-sandbox')">Copy</button>
+                    </div>
+                    <div class="cmd-explain">
+                        <strong>Explanation:</strong> Deletes the container and unbinds its resource layers. The container will be moved to the <strong>Deleted (Offline)</strong> state.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <footer>
+            Designed & built inside <a href="https://github.com/04amanrajj/Docker-learning" target="_blank">Docker-learning Sandbox</a>
+        </footer>
+    </div>
+
+    <!-- Simulator Logic JS -->
+    <script>
+        let currentState = 'offline';
+        let cpuInterval = null;
+        let containerId = null;
+
+        const visual = document.getElementById('visual-container');
+        const stateBadge = document.getElementById('state-badge');
+        const teleCpu = document.getElementById('tele-cpu');
+        const teleRam = document.getElementById('tele-ram');
+        const telePid = document.getElementById('tele-pid');
+        const terminalLog = document.getElementById('terminal-log');
+
+        const btnRun = document.getElementById('btn-run');
+        const btnPause = document.getElementById('btn-pause');
+        const btnStop = document.getElementById('btn-stop');
+        const btnStart = document.getElementById('btn-start');
+        const btnRm = document.getElementById('btn-rm');
+
+        function generateId() {
+            return Math.random().toString(16).substr(2, 12);
+        }
+
+        function appendLog(prompt, command, output, type = 'normal') {
+            const line = document.createElement('div');
+            line.className = 'log-line';
+
+            if (prompt) {
+                const prElem = document.createElement('span');
+                prElem.className = 'log-prompt';
+                prElem.textContent = prompt + ' ';
+                line.appendChild(prElem);
+            }
+
+            if (command) {
+                const cmdElem = document.createElement('span');
+                cmdElem.className = 'log-cmd';
+                cmdElem.textContent = command + '\n';
+                line.appendChild(cmdElem);
+            }
+
+            if (output) {
+                const outElem = document.createElement('span');
+                outElem.className = type === 'sys' ? 'log-sys' : (type === 'err' ? 'log-err' : 'log-out');
+                outElem.textContent = output;
+                line.appendChild(outElem);
+            }
+
+            terminalLog.appendChild(line);
+            terminalLog.scrollTop = terminalLog.scrollHeight;
+        }
+
+        function clearLogs() {
+            terminalLog.innerHTML = '';
+        }
+
+        function startTelemetry() {
+            stopTelemetry();
+            cpuInterval = setInterval(() => {
+                if (currentState === 'running') {
+                    const cpu = (Math.random() * 8 + 1).toFixed(1) + '%';
+                    const ram = (Math.random() * 4 + 48).toFixed(1) + ' MB';
+                    teleCpu.textContent = cpu;
+                    teleRam.textContent = ram;
+                }
+            }, 1000);
+        }
+
+        function stopTelemetry() {
+            if (cpuInterval) clearInterval(cpuInterval);
+        }
+
+        function triggerAction(action) {
+            if (action === 'run') {
+                containerId = generateId();
+                currentState = 'running';
+                
+                // Update visuals
+                visual.className = 'container-box state-running';
+                visual.querySelector('.container-icon').textContent = '🐳';
+                visual.querySelector('.container-label').textContent = 'Running';
+                stateBadge.textContent = 'Status: Running';
+                stateBadge.style.color = '#10b981';
+                stateBadge.style.background = 'rgba(16, 185, 129, 0.1)';
+
+                telePid.textContent = 'ACTIVE (bash)';
+                startTelemetry();
+
+                // Append logs
+                clearLogs();
+                appendLog('$', `docker run -d --name ubuntu-sandbox ubuntu-learning`);
+                setTimeout(() => {
+                    appendLog('', containerId, 'normal');
+                    appendLog('$', 'docker ps');
+                    setTimeout(() => {
+                        appendLog('', `CONTAINER ID   IMAGE             COMMAND             CREATED         STATUS         NAMES\n${containerId.substring(0, 12)}   ubuntu-learning   "./welcome.sh"      1 second ago    Up 1 second    ubuntu-sandbox`, 'normal');
+                        appendLog('', '🚀 Sandbox container started successfully!\n👉 Locate the web page at: http://localhost:8080', 'sys');
+                    }, 400);
+                }, 300);
+
+                // Enable/Disable buttons
+                btnRun.disabled = true;
+                btnPause.disabled = false;
+                btnStop.disabled = false;
+                btnStart.disabled = true;
+                btnRm.disabled = true;
+            } 
+            else if (action === 'pause') {
+                currentState = 'paused';
+                visual.className = 'container-box state-paused';
+                visual.querySelector('.container-icon').textContent = '⏸️';
+                visual.querySelector('.container-label').textContent = 'Paused';
+                stateBadge.textContent = 'Status: Paused';
+                stateBadge.style.color = '#a855f7';
+                stateBadge.style.background = 'rgba(168, 85, 247, 0.1)';
+
+                telePid.textContent = 'FROZEN (cgroup)';
+                teleCpu.textContent = '0.0%';
+
+                // Append logs
+                appendLog('$', `docker pause ubuntu-sandbox`);
+                setTimeout(() => {
+                    appendLog('', `ubuntu-sandbox\n`, 'normal');
+                    appendLog('$', 'docker ps');
+                    setTimeout(() => {
+                        appendLog('', `CONTAINER ID   IMAGE             COMMAND             STATUS                  NAMES\n${containerId.substring(0, 12)}   ubuntu-learning   "./welcome.sh"      Up 12 seconds (Paused)  ubuntu-sandbox`, 'normal');
+                    }, 300);
+                }, 200);
+
+                btnPause.textContent = '▶️ docker unpause';
+                btnPause.setAttribute('onclick', "triggerAction('unpause')");
+                btnPause.className = 'btn-action btn-run';
+                btnStop.disabled = true;
+            }
+            else if (action === 'unpause') {
+                currentState = 'running';
+                visual.className = 'container-box state-running';
+                visual.querySelector('.container-icon').textContent = '🐳';
+                visual.querySelector('.container-label').textContent = 'Running';
+                stateBadge.textContent = 'Status: Running';
+                stateBadge.style.color = '#10b981';
+                stateBadge.style.background = 'rgba(16, 185, 129, 0.1)';
+
+                telePid.textContent = 'ACTIVE (bash)';
+                startTelemetry();
+
+                // Append logs
+                appendLog('$', `docker unpause ubuntu-sandbox`);
+                setTimeout(() => {
+                    appendLog('', `ubuntu-sandbox\n`, 'normal');
+                    appendLog('$', 'docker ps');
+                    setTimeout(() => {
+                        appendLog('', `CONTAINER ID   IMAGE             COMMAND             STATUS          NAMES\n${containerId.substring(0, 12)}   ubuntu-learning   "./welcome.sh"      Up 18 seconds   ubuntu-sandbox`, 'normal');
+                    }, 300);
+                }, 200);
+
+                btnPause.innerHTML = '<span class="cmd-icon">⏸️</span><code>docker pause</code>';
+                btnPause.setAttribute('onclick', "triggerAction('pause')");
+                btnPause.className = 'btn-action btn-pause';
+                btnStop.disabled = false;
+            }
+            else if (action === 'stop') {
+                currentState = 'stopped';
+                stopTelemetry();
+                visual.className = 'container-box state-stopped';
+                visual.querySelector('.container-icon').textContent = '⏹️';
+                visual.querySelector('.container-label').textContent = 'Stopped';
+                stateBadge.textContent = 'Status: Stopped';
+                stateBadge.style.color = '#f59e0b';
+                stateBadge.style.background = 'rgba(245, 158, 11, 0.1)';
+
+                teleCpu.textContent = '0%';
+                teleRam.textContent = '0 MB';
+                telePid.textContent = 'EXITED (SIGKILL)';
+
+                // Append logs
+                appendLog('$', `docker stop ubuntu-sandbox`);
+                setTimeout(() => {
+                    appendLog('', `ubuntu-sandbox\n`, 'normal');
+                    appendLog('$', 'docker ps -a');
+                    setTimeout(() => {
+                        appendLog('', `CONTAINER ID   IMAGE             COMMAND             STATUS                       NAMES\n${containerId.substring(0, 12)}   ubuntu-learning   "./welcome.sh"      Exited (137) 2 seconds ago   ubuntu-sandbox`, 'normal');
+                    }, 300);
+                }, 200);
+
+                btnRun.disabled = true;
+                btnPause.disabled = true;
+                btnStop.disabled = true;
+                btnStart.disabled = false;
+                btnRm.disabled = false;
+            }
+            else if (action === 'start') {
+                currentState = 'running';
+                visual.className = 'container-box state-running';
+                visual.querySelector('.container-icon').textContent = '🐳';
+                visual.querySelector('.container-label').textContent = 'Running';
+                stateBadge.textContent = 'Status: Running';
+                stateBadge.style.color = '#10b981';
+                stateBadge.style.background = 'rgba(16, 185, 129, 0.1)';
+
+                telePid.textContent = 'ACTIVE (bash)';
+                startTelemetry();
+
+                // Append logs
+                appendLog('$', `docker start ubuntu-sandbox`);
+                setTimeout(() => {
+                    appendLog('', `ubuntu-sandbox\n`, 'normal');
+                    appendLog('$', 'docker ps');
+                    setTimeout(() => {
+                        appendLog('', `CONTAINER ID   IMAGE             COMMAND             STATUS          NAMES\n${containerId.substring(0, 12)}   ubuntu-learning   "./welcome.sh"      Up 1 second     ubuntu-sandbox`, 'normal');
+                    }, 300);
+                }, 200);
+
+                btnRun.disabled = true;
+                btnPause.disabled = false;
+                btnStop.disabled = false;
+                btnStart.disabled = true;
+                btnRm.disabled = true;
+            }
+            else if (action === 'rm') {
+                currentState = 'offline';
+                visual.className = 'container-box state-offline';
+                visual.querySelector('.container-icon').textContent = '📦';
+                visual.querySelector('.container-label').textContent = 'Offline';
+                stateBadge.textContent = 'Status: Offline';
+                stateBadge.style.color = 'var(--text-muted)';
+                stateBadge.style.background = 'rgba(255,255,255,0.05)';
+
+                teleCpu.textContent = '0%';
+                teleRam.textContent = '0 MB';
+                telePid.textContent = '-';
+
+                // Append logs
+                appendLog('$', `docker rm ubuntu-sandbox`);
+                setTimeout(() => {
+                    appendLog('', `ubuntu-sandbox\n`, 'normal');
+                    appendLog('$', 'docker ps -a');
+                    setTimeout(() => {
+                        appendLog('', `CONTAINER ID   IMAGE   COMMAND   CREATED   STATUS   PORTS   NAMES\n(No containers found)`, 'normal');
+                    }, 300);
+                }, 200);
+
+                btnRun.disabled = false;
+                btnPause.disabled = true;
+                btnStop.disabled = true;
+                btnStart.disabled = true;
+                btnRm.disabled = true;
+                containerId = null;
+            }
+        }
+
+        // Mini project tabs
+        function switchTab(tabId) {
+            // Remove active classes
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // Set active
+            document.getElementById(`tbtn-${tabId}`).classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Command copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>
