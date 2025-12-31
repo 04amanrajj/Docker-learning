@@ -15,6 +15,7 @@ echo -e "\033[1;34m━━━━━━━━━━━━━━━━━━━━�
 echo -e "🐳 Container Hostname  : \033[1;33m$(hostname)\033[0m"
 echo -e "📅 Container Boot Time : $(date)"
 echo -e "📦 OS Distribution     : \033[1;35mUbuntu 24.04 LTS (Noble Numbat)\033[0m"
+echo -e "🧠 Available Memory    : \033[1;36m$(free -h | grep Mem | awk '{print $7}') free / $(free -h | grep Mem | awk '{print $2}') total\033[0m"
 echo -e "\033[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
 echo -e "\033[1;36mTry executing these commands inside this container:\033[0m"
 echo -e "  1. \033[1;32mapt-get update\033[0m                 - Update package lists"
