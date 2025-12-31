@@ -104,3 +104,19 @@ docker rm ubuntu-sandbox
 
 ## 🎨 Visualizing the Lifecycle
 Open the companion visual interactive dashboard **`index.html`** in your browser. It includes a complete **interactive simulator** where you can click buttons to transition a simulated container between states and inspect its real-time terminal output!
+
+---
+
+## ⚡ Docker CLI Quick Reference
+
+| Command | Action | Lifecycle State Transition |
+| :--- | :--- | :--- |
+| `docker run -d --name <name> <image>` | Create & start a background container | `Image` ➔ `Running` |
+| `docker ps` | List all active running containers | *Inspects active states* |
+| `docker ps -a` | List all containers (including stopped ones) | *Inspects all states* |
+| `docker stop <name>` | Stop a running container gracefully | `Running` ➔ `Stopped` |
+| `docker start <name>` | Restart a stopped container | `Stopped` ➔ `Running` |
+| `docker pause <name>` | Freeze all container processes | `Running` ➔ `Paused` |
+| `docker unpause <name>` | Resume all container processes | `Paused` ➔ `Running` |
+| `docker rm <name>` | Delete a stopped container permanently | `Stopped` / `Created` ➔ `Deleted` |
+
