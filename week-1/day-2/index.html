@@ -576,6 +576,41 @@
             color: var(--secondary);
             text-decoration: underline;
         }
+
+        /* Custom Toast Notification */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .custom-toast {
+            background: rgba(13, 18, 30, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--secondary);
+            border-radius: 12px;
+            padding: 12px 20px;
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .custom-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -1061,8 +1096,36 @@
 
         function copyText(text) {
             navigator.clipboard.writeText(text).then(() => {
-                alert('Command copied to clipboard!');
+                showToast('📋 Command copied to clipboard!');
             });
+        }
+
+        function showToast(message) {
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'custom-toast';
+            toast.innerHTML = message;
+            container.appendChild(toast);
+
+            // Animate in
+            setTimeout(() => toast.classList.add('show'), 50);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                    if (container.childNodes.length === 0) {
+                        container.remove();
+                    }
+                }, 400);
+            }, 3000);
         }
     </script>
 </body>
