@@ -827,6 +827,34 @@
 
         </div>
 
+        <!-- Quick Knowledge Check -->
+        <div class="glass-card" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+            <h2 class="card-title" style="margin-bottom: 1.25rem;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="color: var(--primary);"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+                Quick Knowledge Check
+            </h2>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <details style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; cursor: pointer; transition: all 0.3s;">
+                    <summary style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; color: #fff; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+                        <span>Q1: What happens to files inside a container when you run 'docker stop'?</span>
+                        <span style="color: var(--primary); font-size: 0.8rem;">▼</span>
+                    </summary>
+                    <p style="margin-top: 10px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 10px;">
+                        The container filesystem state remains fully preserved on disk. When you run <code>docker start</code> again, the container boots up with all your files and changes exactly where you left them!
+                    </p>
+                </details>
+                <details style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; cursor: pointer; transition: all 0.3s;">
+                    <summary style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; color: #fff; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+                        <span>Q2: What is the main difference between 'docker stop' and 'docker pause'?</span>
+                        <span style="color: var(--primary); font-size: 0.8rem;">▼</span>
+                    </summary>
+                    <p style="margin-top: 10px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 10px;">
+                        <code>docker stop</code> shuts down the container's processes and terminates memory execution. <code>docker pause</code> suspends the CPU execution using cgroups freezer, keeping the container's exact RAM state intact but halting processor cycles entirely.
+                    </p>
+                </details>
+            </div>
+        </div>
+
         <footer>
             Designed & built inside <a href="https://github.com/04amanrajj/Docker-learning" target="_blank">Docker-learning Sandbox</a>
         </footer>
