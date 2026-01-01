@@ -1,0 +1,11 @@
+# Ignore visual dashboard files from image compilation context
+index.html
+day_2_test_report.md
+
+# Ignore local git directories
+.git
+.gitignore
+
+# Ignore operating system temp files
+.DS_Store
+Thumbs.db
