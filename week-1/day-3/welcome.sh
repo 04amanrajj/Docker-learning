@@ -1,0 +1,32 @@
+#!/bin/bash
+clear
+echo -e "\033[1;35m"
+echo "  _____   ____   _____ _  ________ _____    _____ __  __          _____ ______ "
+echo " |  __ \ / __ \ / ____| |/ /  ____|  __ \  |_   _|  \/  |   /\   / ____|  ____|"
+echo " | |  | | |  | | |    | ' /| |__  | |__) |   | | | \  / |  /  \ | |  __| |__   "
+echo " | |  | | |  | | |    |  < |  __| |  _  /    | | | |\/| | / /\ \| | |_ |  __|  "
+echo " | |__| | |__| | |____| . \| |____| | \ \   _| |_| |  | |/ ____ \ |__| | |____ "
+echo " |_____/ \____/ \_____|_|\_\______|_|  \_\ |_____|_|  |_/_/    \_\_____|______|"
+echo "                                                                               "
+echo "               🌟 DAY 3: CUSTOM UBUNTU DEVELOPER IMAGE 🌟                      "
+echo -e "\033[0m"
+echo -e "\033[1;32m🎉 Congratulations! You built and started your custom Docker Image!\033[0m"
+echo -e "\033[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "🐳 Container Hostname   : \033[1;33m$(hostname)\033[0m"
+echo -e "📦 Base OS Blueprint     : \033[1;36mUbuntu 24.04 LTS\033[0m"
+echo -e "🛠️ Installed Developer Tools:"
+echo -e "   - \033[1;32mgit\033[0m      : $(git --version)"
+echo -e "   - \033[1;32mhtop\033[0m     : $(htop --version | head -n 1)"
+echo -e "   - \033[1;32mcurl\033[0m     : $(curl --version | head -n 1)"
+echo -e "   - \033[1;32mneofetch\033[0m : $(neofetch --version)"
+echo -e "\033[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "\033[1;36mObserve how each instruction in your Dockerfile built these layers:\033[0m"
+echo -e "  1. \033[1;33mFROM\033[0m ubuntu:24.04   ➔ Fetched this base Ubuntu filesystem"
+echo -e "  2. \033[1;33mRUN\033[0m apt-get ...     ➔ Executed package installation layer"
+echo -e "  3. \033[1;33mCOPY\033[0m welcome.sh     ➔ Copied this script file into container"
+echo -e "  4. \033[1;33mCMD\033[0m [\"./welcome.sh\"] ➔ Configured this default boot command"
+echo -e "\033[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "\033[1;35mContainer is active in the background. Press Ctrl+C or run 'docker stop' to exit.\033[0m"
+
+# Keep container alive
+tail -f /dev/null
