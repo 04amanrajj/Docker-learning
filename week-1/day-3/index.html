@@ -705,6 +705,33 @@
             </div>
         </div>
 
+        <!-- Day 3 Image Construction Troubleshooting FAQ -->
+        <div class="glass-card" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+            <h2 class="card-title" style="margin-bottom: 1.25rem;">
+                ⚠️ Common Image Build FAQs & Troubleshooting
+            </h2>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <details style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; cursor: pointer; transition: all 0.3s;">
+                    <summary style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; color: #fff; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+                        <span>Q1: Why is a .dockerignore file necessary during a build?</span>
+                        <span style="color: var(--primary); font-size: 0.8rem;">▼</span>
+                    </summary>
+                    <p style="margin-top: 10px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 10px;">
+                        Without a <code>.dockerignore</code>, Docker copies the entire directory contents (including temporary files, large assets, or local git files) to the Docker daemon build context. This causes slow, bloated compilations. Excluding them keeps builds instant and lightweight!
+                    </p>
+                </details>
+                <details style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; cursor: pointer; transition: all 0.3s;">
+                    <summary style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; color: #fff; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+                        <span>Q2: What causes a build cache invalidation?</span>
+                        <span style="color: var(--primary); font-size: 0.8rem;">▼</span>
+                    </summary>
+                    <p style="margin-top: 10px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 10px;">
+                        If any instruction in the Dockerfile is edited, or if any copied file (such as <code>welcome.sh</code>) has changed, Docker invalidates the cache for that specific layer **and all subsequent layers** stacked on top of it, forcing a fresh recompilation.
+                    </p>
+                </details>
+            </div>
+        </div>
+
         <footer>
             Designed & built inside <a href="https://github.com/04amanrajj/Docker-learning" target="_blank">Docker-learning Blueprint</a>
         </footer>
