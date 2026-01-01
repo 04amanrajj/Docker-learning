@@ -573,19 +573,19 @@
                 <div class="layer-playground">
                     <!-- Dynamic Layer stack will build upwards here -->
                     <div id="stack-from" class="image-layer layer-from">
-                        <span>ubuntu:24.04</span>
+                        <span>ubuntu:24.04 <small style="color: var(--primary); opacity: 0.85;">(29.4 MB)</small></span>
                         <span class="layer-lbl">Base OS layer</span>
                     </div>
                     <div id="stack-run" class="image-layer layer-run">
-                        <span>apt-get install -y git htop ...</span>
+                        <span>RUN apt-get install... <small style="color: var(--secondary); opacity: 0.85;">(53.8 MB)</small></span>
                         <span class="layer-lbl">Packages layer</span>
                     </div>
                     <div id="stack-copy" class="image-layer layer-copy">
-                        <span>COPY welcome.sh .</span>
+                        <span>COPY welcome.sh . <small style="color: #c084fc; opacity: 0.85;">(2.1 KB)</small></span>
                         <span class="layer-lbl">App files layer</span>
                     </div>
                     <div id="stack-cmd" class="image-layer layer-cmd">
-                        <span>CMD ["./welcome.sh"]</span>
+                        <span>CMD ["./welcome.sh"] <small style="color: var(--amber); opacity: 0.85;">(0 B)</small></span>
                         <span class="layer-lbl">Metadata layer</span>
                     </div>
                 </div>
