@@ -1,0 +1,3 @@
+# Ignore heavy node modules folder
+node_modules
+npm-debug.log
