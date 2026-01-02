@@ -789,6 +789,33 @@
             </div>
         </div>
 
+        <!-- Day 4 Network & Port Troubleshooting Accordion -->
+        <div class="glass-card" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+            <h2 class="card-title" style="margin-bottom: 1.25rem;">
+                ⚠️ Common Port Conflicts & Fixes FAQ
+            </h2>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <details style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; cursor: pointer; transition: all 0.3s;">
+                    <summary style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; color: #fff; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+                        <span>Q1: What happens if the Host Port (e.g. 8080) is already in use?</span>
+                        <span style="color: var(--primary); font-size: 0.8rem;">▼</span>
+                    </summary>
+                    <p style="margin-top: 10px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 10px;">
+                        Docker will fail to start and throw an error: <code>port is already allocated</code>. You can easily fix this by changing the host mapping port number (e.g., using <code>-p 8081:3000</code> or <code>-p 9000:3000</code>) without modifying the container's code!
+                    </p>
+                </details>
+                <details style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; cursor: pointer; transition: all 0.3s;">
+                    <summary style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; color: #fff; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+                        <span>Q2: Can I map multiple containers to the exact same host port?</span>
+                        <span style="color: var(--primary); font-size: 0.8rem;">▼</span>
+                    </summary>
+                    <p style="margin-top: 10px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 10px;">
+                        No. A physical port on your computer can only bind to a single active listener process at a time. However, you can run multiple identical containers mapping to *different* host ports (e.g. Container A on <code>-p 8080:3000</code> and Container B on <code>-p 8081:3000</code>).
+                    </p>
+                </details>
+            </div>
+        </div>
+
         <footer>
             Designed & built inside <a href="https://github.com/04amanrajj/Docker-learning" target="_blank">Docker-learning Blueprint</a>
         </footer>
