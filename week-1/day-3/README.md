@@ -1,6 +1,6 @@
 # Week 1 - Day 3: Docker Images & Layering Blueprint 🐳
 
-Welcome to Day 3 of your Docker learning journey! Today, we are mastering **Docker Images**, learning how Docker builds filesystems layer-by-layer, and understanding the core instructions under the hood.
+Today, I mastered **Docker Images**, learned how Docker builds filesystems layer-by-layer, and gained a deep understanding of the core instructions under the hood.
 
 ---
 
@@ -27,7 +27,7 @@ graph TD
 
 ### The Layering Mechanism & Cache
 *   **Layer stacking:** Each instruction in a `Dockerfile` (e.g. `FROM`, `RUN`, `COPY`) creates a **new read-only layer** stacked on top of the previous one.
-*   **Layer Caching:** When you rebuild an image, Docker inspects the instructions. If a step hasn't changed, Docker reuses the cached layer (`---> Using cache`), saving time and bandwidth!
+*   **Layer Caching:** When I rebuild an image, Docker inspects the instructions. If a step hasn't changed, Docker reuses the cached layer (`---> Using cache`), saving time and bandwidth!
 
 ---
 
@@ -37,34 +37,34 @@ graph TD
 | :--- | :--- | :--- |
 | **`FROM`** | Defines the starting baseline image template (Operating System). | Always specify a trusted, official, or minimal base image. |
 | **`RUN`** | Executes command scripts inside the image layer at build time (e.g. installs tools). | Combine consecutive command lines (using `&&` and `\`) to reduce total layer count! |
-| **`COPY`** | Injects files from your local host machine workspace directory directly into the image filesystem. | Copy only the specific files necessary for compilation to leverage layering cache. |
+| **`COPY`** | Injects files from my local host machine workspace directory directly into the image filesystem. | Copy only the specific files necessary for compilation to leverage layering cache. |
 | **`CMD`** | Defines the default runtime command/process of the container. Only the *last* CMD executes! | Use the executable array format: `["./script.sh"]` rather than string format. |
 
 ---
 
-## 🎯 Day 3 Mini Project: Build a Custom Developer Ubuntu Image
+## 🎯 Day 3 Mini Project: Building my Custom Developer Ubuntu Image
 
-In this hands-on lesson, you will compile a custom **Ubuntu 24.04** environment equipped with standard development tools (`git`, `htop`, `curl`, `neofetch`) and analyze its internal layer structure.
+In this hands-on lesson, I compiled a custom **Ubuntu 24.04** environment equipped with standard development tools (`git`, `htop`, `curl`, `neofetch`) and analyzed its internal layer structure.
 
-### Step 1: Compile the Image (Docker Build)
-Run the build instruction from the project root folder. It reads your `Dockerfile` and builds each layer:
+### Step 1: Compiling the Image (Docker Build)
+I ran the build instruction from the project root folder to read the Dockerfile and build each layer:
 ```bash
 docker build -t custom-ubuntu ./week-1/day-3
 ```
 
-### Step 2: Launch the Container (Interactive Mode)
-Start your newly compiled developer template. Since our container is an interactive CLI workspace, we boot it using `-it` (Interactive + TTY) flags so we can enter it directly:
+### Step 2: Launching the Container (Interactive Mode)
+I started my newly compiled developer template. Since my container is an interactive CLI workspace, I booted it using `-it` (Interactive + TTY) flags so I could enter it directly:
 ```bash
 docker run -it --name ubuntu-dev custom-ubuntu
 ```
-*(You will immediately see your custom ASCII banner showing that git, htop, curl, and neofetch are fully installed and configured!)*
+*(I immediately saw my custom ASCII banner showing that git, htop, curl, and neofetch are fully installed and configured!)*
 
-### Step 3: Inspect Filesystem Layer History
-Open a new terminal window on your host computer and run:
+### Step 3: Inspecting Filesystem Layer History
+I opened a new terminal window on my host computer and ran:
 ```bash
 docker history custom-ubuntu
 ```
-This prints the layer-by-layer details of your image, listing the size contribution of each step! Notice how `FROM` (base size) and `RUN` (installed packages size) consume storage space, while `CMD` consumes `0 bytes` (since it is metadata!).
+This printed out the layer-by-layer details of my image, listing the size contribution of each step! I noticed how `FROM` (base size) and `RUN` (installed packages size) consume storage space, while `CMD` consumes `0 bytes` (since it is metadata!).
 
 ---
 

@@ -1,6 +1,6 @@
 # Week 1 - Day 2: Container Lifecycle & CLI Playground 🐳
 
-Welcome to Day 2 of your Docker learning journey! Today, we are deep diving into the **Docker Container Lifecycle** and practicing on a real **Ubuntu 24.04 LTS** container.
+Today, I deep dived into the **Docker Container Lifecycle** and practiced managing state transitions on a real **Ubuntu 24.04 LTS** container.
 
 ---
 

@@ -1,23 +1,23 @@
 # Week 1 - Day 4: Containerizing Node.js REST API & Port Redirection 🌐
 
-Welcome to Day 4 of your Docker learning journey! Today, we are shifting our focus to **Application Containerization**, setting isolated directory contexts, and opening pathways for network traffic to flow between our local host machine and the container.
+Today, I shifted my focus to **Application Containerization**, setting isolated directory contexts using `WORKDIR`, and opening pathways with `EXPOSE` and port mapping so network traffic can flow between my local host machine and my containers.
 
 ---
 
 ## 📌 Concepts: WORKDIR, EXPOSE, & Port Redirection
 
-When packaging application code (like Node.js, Python, or Go APIs) inside a container, managing directories and network accessibility is essential.
+When packaging my application code (like Node.js, Python, or Go APIs) inside a container, managing directories and network accessibility is essential.
 
 ### 1. `WORKDIR <path>` (Isolated Context)
 * **Purpose:** Sets the active working directory for any subsequent `RUN`, `COPY`, `CMD`, or `ENTRYPOINT` instructions.
-* **Why it matters:** It prevents polluting base operating system directories (like `/` or `/usr/local`). If the folder path doesn't exist, Docker automatically creates it!
+* **Why it matters:** It prevents me from polluting base operating system directories (like `/` or `/usr/local`). If the folder path doesn't exist, Docker automatically creates it!
 
 ### 2. `EXPOSE <port>` (Metadata Gateway)
-* **Purpose:** Declares that the container's standard processes listen on a specific private network port (e.g. `3000`).
-* **Why it matters:** It acts strictly as documentation between the image builder and operator. It does **not** actually open ports on your computer or route host traffic!
+* **Purpose:** Declares that my container's standard processes listen on a specific private network port (e.g. `3000`).
+* **Why it matters:** It acts strictly as documentation between me and the runtime environment. It does **not** actually open ports on my computer or route host traffic!
 
 ### 3. Port Mapping `-p <host_port>:<container_port>`
-* **Purpose:** Instructs the Docker daemon to bind a physical port on your computer (the host) and redirect all inbound traffic directly to a private port inside the container's bridge network.
+* **Purpose:** Instructs the Docker daemon to bind a physical port on my computer (the host) and redirect all inbound traffic directly to a private port inside my container's bridge network.
 
 ```mermaid
 sequenceDiagram
@@ -35,7 +35,7 @@ sequenceDiagram
 ---
 
 ## 🛠️ Dockerfile Architecture Review
-Here is the production-ready Node.js container blueprint we built for today:
+Here is the production-ready Node.js container blueprint I created:
 ```dockerfile
 # Start from lightweight Node template
 FROM node:20-alpine
@@ -60,28 +60,29 @@ CMD ["node", "server.js"]
 ---
 
 ## 🎯 Day 4 Mini Project: Run and Map hello-api
-Let's build and execute the Express REST API container.
+For my hands-on project, I compiled and executed the Express REST API container.
 
-### Step 1: Compile the Container Image
-Execute this command inside the project directory:
+### Step 1: Compiling the Container Image
+I compiled the container image by running:
 ```bash
 docker build -t hello-api ./week-1/day-4/hello-api
 ```
 
-### Step 2: Run in Detached Mode with Port Mapping
-We use the `-d` flag to boot the container in the background (detached mode) and `-p` to map host port `8080` to private exposed container port `3000`:
+### Step 2: Running in Detached Mode with Port Mapping
+I used the `-d` flag to boot the container in the background (detached mode) and `-p` to map my host port `8080` to the private exposed container port `3000`:
 ```bash
 docker run -d --name node-app -p 8080:3000 hello-api
 ```
 
-### Step 3: Test and Curl the API
-Check if the bridge network successfully maps incoming traffic:
+### Step 3: Testing my API Endpoint
+I tested that the bridge network successfully mapped incoming traffic by running:
 ```bash
 curl http://localhost:8080
 ```
-*(You will receive a beautiful diagnostic JSON response showing CPU architecture, total free memory, and exposed network parameters!)*
+*(I received a beautiful diagnostic JSON response showing my CPU architecture, total free memory, and exposed network parameters!)*
 
-### Step 4: Cleanup
+### Step 4: Cleaning Up
+When finished, I stopped and removed the container:
 ```bash
 docker stop node-app && docker rm node-app
 ```
