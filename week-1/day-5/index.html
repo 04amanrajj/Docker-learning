@@ -916,7 +916,10 @@
                 <div class="glass-card" style="padding: 1.5rem;">
                     <div class="console-header">
                         <span>Terminal stderr logs</span>
-                        <span style="cursor: pointer;" onclick="clearLogs()">Clear</span>
+                        <div>
+                            <span style="cursor: pointer; color: var(--text-muted);" onclick="clearLogs()">Clear</span>
+                            <span style="cursor: pointer; margin-left: 10px; color: var(--rose);" onclick="resetSandbox()">Reset DB</span>
+                        </div>
                     </div>
                     <div id="console-output" class="console-log-card">
                         [System] Select mount configuration above and boot PostgreSQL container daemon...
@@ -1006,7 +1009,317 @@
     </div>
 
     <script>
-        // Placeholder scripts - detailed simulation state engine will be injected
+        // Simulation States
+        let storageMode = 'none'; // 'none', 'volume', 'bind'
+        let containerRunning = false;
+        
+        // Persistent Storage Banks (survive container deletion)
+        let namedVolumeBank = [
+            { id: 1, name: 'Developer Aman', command: 'docker volume create', date: '2026-05-25 12:00' }
+        ];
+        let bindMountBank = [];
+        
+        // Active Running Container Memory Storage
+        let containerDB = [];
+
+        // DOM elements
+        const txtModeDisplay = document.getElementById('txt-mode-display');
+        const wireConnector = document.getElementById('wire-connector');
+        const nodeHost = document.getElementById('node-host');
+        const metaHost = document.getElementById('meta-host');
+        const iconHost = document.getElementById('icon-host');
+        const titleHost = document.getElementById('title-host');
+        const nodeContainer = document.getElementById('node-container');
+        const dbStatus = document.getElementById('db-status');
+        const dbTbody = document.getElementById('db-tbody');
+        const consoleOutput = document.getElementById('console-output');
+        
+        const inDevName = document.getElementById('in-dev-name');
+        const inDevCmd = document.getElementById('in-dev-cmd');
+        const btnDbInsert = document.getElementById('btn-db-insert');
+        const btnSpin = document.getElementById('btn-spin');
+        const btnCrash = document.getElementById('btn-crash');
+        
+        const telemetryHost = document.getElementById('telemetry-host');
+        const toastNotif = document.getElementById('toast-notif');
+
+        // Initialize Telemetry
+        updateTelemetry();
+
+        // 1. Switch Storage Modes
+        function setStorageMode(mode) {
+            if (containerRunning) {
+                showToast("⚠️ Stop the running container before changing mount directives!");
+                addLog("Cannot change mount mode while pg-server is running!", "fail");
+                return;
+            }
+
+            storageMode = mode;
+            
+            // Remove active classes
+            document.querySelectorAll('.storage-tab-btn').forEach(btn => btn.classList.remove('active', 'mode-none', 'mode-bind'));
+            
+            const btnNone = document.getElementById('tab-none');
+            const btnVolume = document.getElementById('tab-volume');
+            const btnBind = document.getElementById('tab-bind');
+
+            // Reset custom style classes
+            nodeHost.className = "sandbox-node node-host-filesystem";
+            wireConnector.className = "mount-wire";
+
+            if (mode === 'none') {
+                btnNone.classList.add('active', 'mode-none');
+                txtModeDisplay.innerText = "MODE: EPHEMERAL";
+                txtModeDisplay.style.background = "rgba(244, 63, 94, 0.15)";
+                txtModeDisplay.style.color = "var(--rose)";
+                metaHost.innerText = "ephemeral_tmp/";
+                iconHost.innerText = "💻";
+                titleHost.innerText = "Host Local Filesystem";
+                addLog("Switched to Ephemeral mode. Database cluster files will write to container temporary layer.", "info");
+            } else if (mode === 'volume') {
+                btnVolume.classList.add('active');
+                txtModeDisplay.innerText = "MODE: NAMED VOLUME";
+                txtModeDisplay.style.background = "rgba(16, 185, 129, 0.15)";
+                txtModeDisplay.style.color = "var(--secondary)";
+                nodeHost.classList.add('active-sec');
+                wireConnector.classList.add('active');
+                metaHost.innerText = "var/lib/docker/volumes/pg-data/";
+                iconHost.innerText = "💾";
+                titleHost.innerText = "Named Volume Cluster";
+                addLog("Attached named volume 'pg-data' to mount gateway.", "succ");
+            } else if (mode === 'bind') {
+                btnBind.classList.add('active', 'mode-bind');
+                txtModeDisplay.innerText = "MODE: BIND MOUNT";
+                txtModeDisplay.style.background = "rgba(13, 183, 237, 0.15)";
+                txtModeDisplay.style.color = "var(--primary)";
+                nodeHost.classList.add('active-prim');
+                wireConnector.classList.add('active', 'bind');
+                metaHost.innerText = "./postgres-test/";
+                iconHost.innerText = "🔌";
+                titleHost.innerText = "Bind Mounted Directory";
+                addLog("Mounted absolute path '$(pwd)/postgres-test' to mount gateway.", "info");
+            }
+
+            updateTelemetry();
+        }
+
+        // 2. Spin Up Container Process
+        function spinUpContainer() {
+            if (containerRunning) return;
+
+            containerRunning = true;
+            nodeContainer.classList.add('online');
+            
+            btnSpin.disabled = true;
+            btnCrash.disabled = false;
+            
+            inDevName.disabled = false;
+            inDevCmd.disabled = false;
+            btnDbInsert.disabled = false;
+            
+            dbStatus.innerText = "POSTGRES 16 - LISTENING ON PORT 5432";
+            dbStatus.className = "db-status-pill online";
+
+            addLog("System: Executing 'docker run -d --name pg-server postgres:16-alpine'", "sys");
+            addLog("pg-server: Starting PostgreSQL database daemon...", "sys");
+            addLog("pg-server: Database engine is ready to accept socket connections.", "succ");
+
+            // Sync database records depending on Storage Mode
+            if (storageMode === 'volume') {
+                containerDB = [...namedVolumeBank];
+                addLog("pg-server: Mounted volume pg-data successfully. Restored " + containerDB.length + " developer records.", "succ");
+            } else if (storageMode === 'bind') {
+                containerDB = [...bindMountBank];
+                addLog("pg-server: Bounded directory './postgres-test' mapped. Restored " + containerDB.length + " files.", "info");
+            } else {
+                containerDB = [];
+                addLog("pg-server: Initialized with ephemeral container database store.", "info");
+            }
+
+            updateTable();
+            updateTelemetry();
+        }
+
+        // 3. Crash Container (Simulate rm)
+        function crashContainer() {
+            if (!containerRunning) return;
+
+            containerRunning = false;
+            nodeContainer.classList.remove('online');
+            
+            btnSpin.disabled = false;
+            btnCrash.disabled = true;
+            
+            inDevName.disabled = true;
+            inDevCmd.disabled = true;
+            btnDbInsert.disabled = true;
+            
+            dbStatus.innerText = "DB SYSTEM OFFLINE";
+            dbStatus.className = "db-status-pill";
+
+            addLog("System: Executing 'docker rm -f pg-server' (Force Crash)", "fail");
+            addLog("pg-server: Received shutdown signal SIGKILL. Terminating process...", "fail");
+            addLog("System: Container 'pg-server' deleted permanently. Ephemeral layers destroyed.", "fail");
+
+            // Clear container active memory (ephemeral layer deleted)
+            containerDB = [];
+            
+            updateTable();
+            updateTelemetry();
+        }
+
+        // 4. Insert Database Records
+        function insertCustomRecord() {
+            const nameVal = inDevName.value.trim();
+            const cmdVal = inDevCmd.value.trim();
+
+            if (!nameVal || !cmdVal) {
+                showToast("⚠️ Fields cannot be blank!");
+                return;
+            }
+
+            const newId = containerDB.length > 0 ? Math.max(...containerDB.map(r => r.id)) + 1 : 1;
+            const now = new Date();
+            const timeStr = now.toISOString().replace('T', ' ').substring(0, 16);
+
+            const newRecord = {
+                id: newId,
+                name: nameVal,
+                command: cmdVal,
+                date: timeStr
+            };
+
+            // Push to container database active layers
+            containerDB.push(newRecord);
+            addLog("Postgres Client: INSERT INTO developers (name, favorite_docker_command) VALUES ('" + nameVal + "', '" + cmdVal + "');", "info");
+
+            // Trigger Mounting Line Pulse Animation
+            if (storageMode !== 'none') {
+                wireConnector.classList.add('syncing');
+                addLog("StorageEngine: Writing database WAL (Write-Ahead-Log) transaction blocks to host path...", "sys");
+                
+                setTimeout(() => {
+                    wireConnector.classList.remove('syncing');
+                    addLog("StorageEngine: Sync complete. Files updated on Host.", "succ");
+                }, 1000);
+            } else {
+                addLog("StorageEngine: [Warning] Writing transactions strictly to writable container layer. Ephemeral memory only!", "fail");
+            }
+
+            // Sync to host banks immediately if mounted
+            if (storageMode === 'volume') {
+                namedVolumeBank.push(newRecord);
+            } else if (storageMode === 'bind') {
+                bindMountBank.push(newRecord);
+            }
+
+            // Reset inputs
+            inDevName.value = "";
+            inDevCmd.value = "";
+
+            updateTable();
+            updateTelemetry();
+        }
+
+        // Update Table GUI
+        function updateTable() {
+            dbTbody.innerHTML = "";
+
+            if (!containerRunning) {
+                dbTbody.innerHTML = `<tr>
+                    <td colspan="4" class="empty-row-msg">Spin up the PostgreSQL database container to query records...</td>
+                </tr>`;
+                return;
+            }
+
+            if (containerDB.length === 0) {
+                dbTbody.innerHTML = `<tr>
+                    <td colspan="4" class="empty-row-msg">Table "developers" is empty. Add a custom row or run a seed migration!</td>
+                </tr>`;
+                return;
+            }
+
+            containerDB.forEach(record => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${record.id}</td>
+                    <td><strong>${record.name}</strong></td>
+                    <td><code>${record.command}</code></td>
+                    <td style="color: var(--text-muted);">${record.date}</td>
+                `;
+                dbTbody.appendChild(tr);
+            });
+        }
+
+        // Update Telemetry Panel Details
+        function updateTelemetry() {
+            if (storageMode === 'none') {
+                telemetryHost.innerHTML = `<span style="color: var(--rose);">⚠️ EPHEMERAL MODE ACTIVE</span>\nNo persistent directory mapped. Writable changes will vanish upon container shutdown.`;
+            } else if (storageMode === 'volume') {
+                const count = namedVolumeBank.length;
+                telemetryHost.innerHTML = `<strong>Volume Path:</strong> /var/lib/docker/volumes/pg-data/_data/\n<strong>Active Cluster Size:</strong> ${count * 4} KB\n<strong>Stored Table Rows:</strong> ${count} developers\n\n<strong>Files present:</strong>\n📄 postgresql.conf\n📄 pg_hba.conf\n📁 base/ (SQL cluster database index)\n📁 global/ (system wide telemetry)`;
+            } else if (storageMode === 'bind') {
+                const count = bindMountBank.length;
+                telemetryHost.innerHTML = `<strong>Local Mount:</strong> ./postgres-test/\n<strong>Files mapping:</strong>\n📄 init.sql (seed schema)\n📄 test-persistence.sh (lifecycle CLI)\n\n<strong>Synced developers rows:</strong> ${count} developers`;
+            }
+        }
+
+        // Helper: Logging System
+        function addLog(text, type) {
+            const time = new Date().toLocaleTimeString();
+            let colorClass = "log-sys";
+            if (type === "succ") colorClass = "log-succ";
+            if (type === "fail") colorClass = "log-fail";
+            if (type === "info") colorClass = "log-info";
+
+            consoleOutput.innerHTML += `\n<span style="color: var(--text-muted);">[${time}]</span> <span class="${colorClass}">${text}</span>`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        function clearLogs() {
+            consoleOutput.innerHTML = "[System] Clean terminal state. Select options to run simulations.";
+        }
+
+        // Guide Tabs switcher
+        function switchGuide(guide) {
+            document.querySelectorAll('.t-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.t-tab-content').forEach(c => c.classList.remove('active'));
+
+            document.getElementById('tb-' + guide).classList.add('active');
+            document.getElementById('guide-' + guide).classList.add('active');
+        }
+
+        // Copy Clipboard Helper
+        function copyString(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("✓ Copied: " + text.substring(0, 30) + "...");
+            });
+        }
+
+        function showToast(msg) {
+            toastNotif.innerHTML = `<span>${msg}</span>`;
+            toastNotif.classList.add('show');
+            setTimeout(() => {
+                toastNotif.classList.remove('show');
+            }, 3000);
+        }
+
+        // Reset Sandbox State
+        function resetSandbox() {
+            namedVolumeBank = [
+                { id: 1, name: 'Developer Aman', command: 'docker volume create', date: '2026-05-25 12:00' }
+            ];
+            bindMountBank = [];
+            containerDB = [];
+            if (containerRunning) {
+                crashContainer();
+            }
+            updateTable();
+            updateTelemetry();
+            addLog("System: Sandbox state has been completely reset to factory defaults.", "info");
+            showToast("🔄 Simulator reset completed!");
+        }
     </script>
+
 </body>
 </html>
