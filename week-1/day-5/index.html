@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 5: Docker Volumes & Data Persistence</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #04060b;
+            --card-bg: rgba(9, 13, 24, 0.75);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #0db7ed; /* Docker Blue */
+            --primary-glow: rgba(13, 183, 237, 0.35);
+            --secondary: #10b981; /* Emerald Green (Persistence) */
+            --secondary-glow: rgba(16, 185, 129, 0.3);
+            --purple: #a855f7;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+            padding: 2rem 1rem;
+        }
+
+        /* Ambient glowing background decorations */
+        .glow-orb {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--primary-glow) 0%, rgba(13, 183, 237, 0) 70%);
+            top: -250px;
+            left: -200px;
+            z-index: 0;
+            filter: blur(60px);
+            animation: float-slow 20s infinite alternate;
+        }
+
+        .glow-orb-2 {
+            position: absolute;
+            width: 700px;
+            height: 700px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0) 70%);
+            bottom: -300px;
+            right: -200px;
+            z-index: 0;
+            filter: blur(80px);
+            animation: float-slow 30s infinite alternate-reverse;
+        }
+
+        @keyframes float-slow {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(80px, 50px) scale(1.08); }
+        }
+
+        .wrapper {
+            position: relative;
+            z-index: 10;
+            max-width: 1100px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #a7f3d0;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 40%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 750px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 2.25rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="glow-orb"></div>
+    <div class="glow-orb-2"></div>
+
+    <div class="wrapper">
+        <header>
+            <div class="badge">Week 1 • Day 5</div>
+            <h1>Docker Volumes & Data Persistence Engine</h1>
+            <p class="subtitle">
+                Inspect how data lives on when containers die. Map named volumes, define custom bind mounts, execute database CRUD states, and test simulated crash disasters in real time.
+            </p>
+        </header>
+
+        <div class="glass-card">
+            <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; margin-bottom: 1rem;">Docker Storage Simulator Sandbox</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">Preparing layout structure. Dynamic simulation nodes are initializing...</p>
+        </div>
+    </div>
+</body>
+</html>
