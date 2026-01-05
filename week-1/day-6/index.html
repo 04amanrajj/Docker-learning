@@ -168,6 +168,12 @@
             transition: border-color 0.5s ease, box-shadow 0.5s ease;
         }
 
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), 
+                        0 0 30px var(--dynamic-theme-glow);
+        }
+
         .card-header {
             display: flex;
             align-items: center;
@@ -882,7 +888,229 @@
     </div>
 
     <script>
-        // Placeholder scripts - dynamic simulator states will be injected
+        // Simulator States
+        let containerActive = false;
+
+        // DOM nodes
+        const txtStatusPill = document.getElementById('txt-status-pill');
+        const injectionWire = document.getElementById('injection-wire');
+        const simContainer = document.getElementById('sim-container');
+        const screenBadge = document.getElementById('screen-badge');
+        const screenAvatar = document.getElementById('screen-avatar');
+        const screenWelcome = document.getElementById('screen-welcome');
+        const consoleLogs = document.getElementById('console-logs');
+        
+        const scPort = document.getElementById('sc-port');
+        const scDb = document.getElementById('sc-db');
+        const scApi = document.getElementById('sc-api');
+
+        const btnRunEnv = document.getElementById('btn-run-env');
+        const btnRunDefault = document.getElementById('btn-run-default');
+        const btnStop = document.getElementById('btn-stop');
+        const toastNotif = document.getElementById('toast-notif');
+
+        // Form fields
+        const envPort = document.getElementById('env-port');
+        const envMode = document.getElementById('env-mode');
+        const envWelcome = document.getElementById('env-welcome');
+        const envColor = document.getElementById('env-color');
+        const envDb = document.getElementById('env-db');
+
+        // 1. Boot Container with custom .env profiles
+        function bootWithEnvFile() {
+            if (containerActive) return;
+
+            const pVal = envPort.value.trim() || "3000";
+            const mVal = envMode.value.trim() || "production";
+            const wVal = envWelcome.value.trim() || "Welcome!";
+            const cVal = envColor.value.trim() || "#0db7ed";
+            const dVal = envDb.value.trim() || "localhost";
+
+            // Trigger variables stream animation
+            injectionWire.className = "injection-wire active injecting";
+            addLog("System: parsing local .env key-value profiles...", "sys");
+            addLog(`System: Injected Port: ${pVal}, Mode: ${mVal}, DB: ${dVal}`, "info");
+
+            setTimeout(() => {
+                containerActive = true;
+                
+                // Morph Theme UI colors dynamically!
+                setDynamicTheme(cVal);
+
+                // Enable screen online classes
+                simContainer.classList.add('online');
+                txtStatusPill.innerText = "ONLINE (.env PROFILE)";
+                txtStatusPill.style.background = "rgba(16, 185, 129, 0.15)";
+                txtStatusPill.style.color = "var(--secondary)";
+
+                // Update container screen UI labels
+                screenBadge.innerText = mVal.substring(0, 4).toUpperCase();
+                if (mVal.toLowerCase().includes('prod')) {
+                    screenBadge.style.background = "var(--rose)";
+                    screenBadge.style.color = "#fff";
+                } else if (mVal.toLowerCase().includes('dev')) {
+                    screenBadge.style.background = "var(--secondary)";
+                    screenBadge.style.color = "#000";
+                } else {
+                    screenBadge.style.background = "var(--purple)";
+                    screenBadge.style.color = "#fff";
+                }
+
+                screenWelcome.innerText = wVal;
+                scPort.innerText = pVal;
+                scDb.innerText = dVal;
+                scApi.innerText = "•••••••••••••••• (Secured!)";
+
+                btnRunEnv.disabled = true;
+                btnRunDefault.disabled = true;
+                btnStop.disabled = false;
+
+                addLog("System: Executing 'docker run -d --name env-app --env-file .env -p 8080:3000 env-playground'", "sys");
+                addLog("env-app: Server booting...", "sys");
+                addLog(`env-app: Running server in ${mVal} mode on listening port ${pVal}`, "succ");
+                addLog(`env-app: Synced database connection link -> ${dVal}`, "succ");
+                addLog("env-app: Loaded secured API credentials from .env config file.", "succ");
+
+                injectionWire.classList.remove('injecting');
+            }, 1500);
+        }
+
+        // 2. Boot Container with image built-in defaults
+        function bootWithDefaultEnv() {
+            if (containerActive) return;
+
+            // Trigger stream animation
+            injectionWire.className = "injection-wire active injecting";
+            addLog("System: starting container without environmental overrides...", "sys");
+            addLog("System: Fallback to built-in Dockerfile 'ENV' default values.", "info");
+
+            setTimeout(() => {
+                containerActive = true;
+
+                // Load default Docker Blue styling
+                setDynamicTheme("#0db7ed");
+
+                // Enable screen online classes
+                simContainer.classList.add('online');
+                txtStatusPill.innerText = "ONLINE (DEFAULT ENV)";
+                txtStatusPill.style.background = "rgba(13, 183, 237, 0.15)";
+                txtStatusPill.style.color = "var(--primary)";
+
+                // Update container screen UI labels
+                screenBadge.innerText = "PROD";
+                screenBadge.style.background = "var(--primary)";
+                screenBadge.style.color = "#000";
+
+                screenWelcome.innerText = "Hello from Docker Sandbox (Default image ENV)! 🐋";
+                scPort.innerText = "3000";
+                scDb.innerText = "localhost";
+                scApi.innerText = "NOT_SET (Missing .env)";
+
+                btnRunEnv.disabled = true;
+                btnRunDefault.disabled = true;
+                btnStop.disabled = false;
+
+                addLog("System: Executing 'docker run -d --name env-app -p 8080:3000 env-playground'", "sys");
+                addLog("env-app: Server booting...", "sys");
+                addLog("env-app: Running server in production mode on default port 3000", "succ");
+                addLog("env-app: No DB host provided. Falling back to localhost.", "info");
+                addLog("env-app: [Warning] API_KEY environment variable is missing!", "fail");
+
+                injectionWire.classList.remove('injecting');
+            }, 1500);
+        }
+
+        // 3. Stop Container
+        function terminateContainer() {
+            if (!containerActive) return;
+
+            containerActive = false;
+            
+            simContainer.classList.remove('online');
+            injectionWire.className = "injection-wire";
+            
+            txtStatusPill.innerText = "ENGINE OFFLINE";
+            txtStatusPill.style.background = "rgba(255, 255, 255, 0.05)";
+            txtStatusPill.style.color = "var(--text-muted)";
+
+            // Reset dynamic theme variable back to default Docker Blue
+            setDynamicTheme("#0db7ed");
+
+            btnRunEnv.disabled = false;
+            btnRunDefault.disabled = false;
+            btnStop.disabled = true;
+
+            addLog("System: Executing 'docker stop env-app && docker rm env-app'", "fail");
+            addLog("env-app: Received shutdown signal. Disposing process environment variables...", "fail");
+            addLog("System: Container env-app shut down and disposed.", "fail");
+        }
+
+        // 4. Update dynamic theme skin elements
+        function setDynamicTheme(hexColor) {
+            document.documentElement.style.setProperty('--dynamic-theme', hexColor);
+            
+            // Generate glowing transparent variant for backdrop shadow
+            let r = parseInt(hexColor.slice(1, 3), 16);
+            let g = parseInt(hexColor.slice(3, 5), 16);
+            let b = parseInt(hexColor.slice(5, 7), 16);
+            document.documentElement.style.setProperty('--dynamic-theme-glow', `rgba(${r}, ${g}, ${b}, 0.25)`);
+        }
+
+        // 5. Reset input fields to template defaults
+        function loadDefaults() {
+            if (containerActive) {
+                showToast("⚠️ Shutdown the running container before resetting editor values!");
+                return;
+            }
+            envPort.value = 3000;
+            envMode.value = "development";
+            envWelcome.value = "Aman's Docker Environment Sandbox! 🚀";
+            envColor.value = "#10b981";
+            envDb.value = "pg-db-host";
+            
+            addLog("System: Local .env profile editor reset to defaults.", "info");
+            showToast("🔄 Editor defaults restored!");
+        }
+
+        // Logs Control
+        function addLog(text, type) {
+            const time = new Date().toLocaleTimeString();
+            let c = "log-sys";
+            if (type === "succ") c = "log-succ";
+            if (type === "fail") c = "log-fail";
+            if (type === "info") c = "log-info";
+
+            consoleLogs.innerHTML += `\n<span style="color: var(--text-muted);">[${time}]</span> <span class="${c}">${text}</span>`;
+            consoleLogs.scrollTop = consoleLogs.scrollHeight;
+        }
+
+        function clearLogs() {
+            consoleLogs.innerHTML = "[System] Clean terminal states. Select orchestration commands.";
+        }
+
+        // Copy Text Helper
+        function copyText(str) {
+            navigator.clipboard.writeText(str).then(() => {
+                showToast("✓ Command copied to clipboard!");
+            });
+        }
+
+        function showToast(msg) {
+            toastNotif.innerHTML = `<span>${msg}</span>`;
+            toastNotif.classList.add('show');
+            setTimeout(() => {
+                toastNotif.classList.remove('show');
+            }, 3000);
+        }
+
+        // Switch Guides
+        function switchGuide(guideId) {
+            document.querySelectorAll('.step-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.step-tab-content').forEach(content => content.classList.remove('active'));
+
+            document.getElementById('st-' + guideId).classList.add('active');
+            document.getElementById('guide-' + guideId).classList.add('active');
+        }
     </script>
 </body>
 </html>
