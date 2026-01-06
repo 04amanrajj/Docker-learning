@@ -1,0 +1,9 @@
+# Docker Build Context Ignore List
+node_modules
+npm-debug.log
+.env
+Dockerfile
+run-project.sh
+.git
+.gitignore
+README.md
