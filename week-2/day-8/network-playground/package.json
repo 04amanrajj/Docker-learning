@@ -1,0 +1,13 @@
+{
+  "name": "network-playground",
+  "version": "1.0.0",
+  "description": "Docker Learning Network Sandbox - Week 2 Day 8",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "redis": "^4.6.13"
+  }
+}
