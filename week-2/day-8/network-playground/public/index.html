@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker User-Defined Bridge Networks Visualizer</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="network-playground/public/style.css">
+</head>
+<body>
+    <div class="glow-orb"></div>
+    <div class="glow-orb-2"></div>
+
+    <div class="wrapper">
+        <header>
+            <div class="badge">Week 2 • Day 8</div>
+            <h1>User-Defined Bridge Networks Sandbox</h1>
+            <p class="subtitle">
+                Explore dynamic container-to-container communication. Proves how User-Defined Bridge Networks leverage Docker's built-in DNS engine to enable isolated, hostname-based socket queries without hardcoding IP addresses.
+            </p>
+        </header>
+
+        <!-- Dashboard Layout Grid -->
+        <div class="dashboard-grid">
+            
+            <!-- Left Panel: Private Subnet Canvas Visualizer -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6" y2="6.01"/><line x1="6" y1="18" x2="6" y2="18.01"/></svg>
+                        Docker Network Canvas
+                    </h2>
+                    <span id="dns-badge" class="card-header-badge status-green">DNS: ACTIVE</span>
+                </div>
+
+                <!-- Network Subnet Box -->
+                <div class="network-canvas-panel">
+                    
+                    <!-- Web User Host station (outside network border) -->
+                    <div class="workstation-node">
+                        <div class="node-icon">💻</div>
+                        <div class="node-title">Host Browser</div>
+                        <div class="node-meta">localhost:8080</div>
+                    </div>
+
+                    <!-- Host to Web App Line -->
+                    <div class="bridge-line-wrapper" style="left: 172px; width: 220px; top: 50%;">
+                        <div id="wire-host" class="bridge-wire">
+                            <span class="network-packet"></span>
+                        </div>
+                    </div>
+
+                    <!-- User defined boundary bridge network -->
+                    <div style="position: absolute; left: 350px; right: 20px; top: 15px; bottom: 15px; border: 2px dashed rgba(13, 183, 237, 0.2); border-radius: 16px; pointer-events: none; z-index: 1;"></div>
+                    <span class="network-boundary-label">Bridge Subnet (app-net: 172.18.0.0/16)</span>
+
+                    <!-- Node 1: Web App Container -->
+                    <div id="node-web" class="container-virtual-node online" style="position: absolute; left: 375px; top: 50%; transform: translateY(-50%); z-index: 10;">
+                        <span class="c-badge web">web-app</span>
+                        <div class="node-icon">🐋</div>
+                        <div class="node-title">Web API Server</div>
+                        <div class="node-meta" style="color: var(--primary);">IP: 172.18.0.3</div>
+                    </div>
+
+                    <!-- Web app to Cache DB Line -->
+                    <div class="bridge-line-wrapper" style="left: 515px; width: 195px; top: 50%;">
+                        <div id="wire-db" class="bridge-wire active linked-db">
+                            <span class="network-packet" style="animation-delay: 0.5s;"></span>
+                        </div>
+                    </div>
+
+                    <!-- Node 2: Isolated Cache Redis Container -->
+                    <div id="node-db" class="container-virtual-node online database" style="position: absolute; right: 40px; top: 50%; transform: translateY(-50%); z-index: 10;">
+                        <span class="c-badge db">cache-db</span>
+                        <div class="node-icon">📦</div>
+                        <div class="node-title">Redis Cache</div>
+                        <div class="node-meta" style="color: var(--secondary);">IP: 172.18.0.2</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Right Panel: Operations Engine Controls -->
+            <div class="sidebar-stack">
+                
+                <!-- Telemetry Stats Strips -->
+                <div class="glass-card">
+                    <h3 class="card-title" style="font-size: 1.15rem; margin-bottom: 0.25rem;">
+                        📊 Subnet Telemetry
+                    </h3>
+                    
+                    <div class="quick-metrics-wrapper">
+                        <div class="metric-strip">
+                            <span class="metric-lbl">Total API Hits</span>
+                            <span id="metric-hits" class="metric-val text-green">0</span>
+                        </div>
+                        <div class="metric-strip">
+                            <span class="metric-lbl">Storage Mode</span>
+                            <span id="metric-storage" class="metric-val truncate" style="color: var(--primary);">Redis Cache</span>
+                        </div>
+                    </div>
+
+                    <div class="quick-metrics-wrapper">
+                        <div class="metric-strip" style="grid-column: span 2;">
+                            <span class="metric-lbl">Docker DNS Resolution Address</span>
+                            <span id="metric-dns-address" class="metric-val" style="font-size: 0.95rem; color: #a855f7;">cache-db ➔ 172.18.0.2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orchestrator CLI Switches -->
+                <div class="glass-card">
+                    <h3 class="card-title" style="font-size: 1.15rem; margin-bottom: 0.25rem;">
+                        🛠️ Network Controls
+                    </h3>
+                    <div class="btn-grid-panel">
+                        <button class="orchestration-btn text-green" onclick="sendApiRequest()">
+                            ⚡ Send Client Request Packet
+                        </button>
+                        <button id="btn-disconnect" class="orchestration-btn btn-disconnect" onclick="toggleDatabaseNetwork(false)">
+                            ❌ Isolate Database (Disconnect)
+                        </button>
+                        <button id="btn-connect" class="orchestration-btn btn-connect" onclick="toggleDatabaseNetwork(true)" disabled>
+                            ✓ Re-Connect Database (Join Bridge)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Daemon Shell console logs -->
+                <div class="glass-card">
+                    <div class="console-logs-hdr">
+                        <span>Docker Network daemon log</span>
+                        <span style="cursor: pointer;" onclick="clearLogs()">Clear</span>
+                    </div>
+                    <div id="network-console" class="console-logs-box">
+                        [System] Ready. Bridge Subnet "app-net" loaded successfully. Awaiting workstation commands...
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- FAQs Troubshooting accordion -->
+        <div class="glass-card">
+            <h2 class="card-title" style="margin-bottom: 0.25rem;">
+                ⚠️ Docker Networks FAQ & Architecture Notes
+            </h2>
+            <div class="faq-block">
+                <details>
+                    <summary>Q1: Why doesn't the default bridge network support container hostname pings?</summary>
+                    <div class="faq-content">
+                        The default bridge is a legacy framework. To resolve hostnames automatically, Docker requires a dynamic DNS server module, which is **only instantiated inside user-defined custom networks**. Custom bridges resolve host names to private IPs on the fly.
+                    </div>
+                </details>
+                <details>
+                    <summary>Q2: Is it safe to expose Redis / database ports on the host system (-p 6379:6379)?</summary>
+                    <div class="faq-content">
+                        **Absolutely not!** This exposes database listening sockets directly to external network scanners. In a user-defined network, the Node API and Redis can talk internally over `app-net`. You only expose the Node HTTP port (`-p 8080:3000`) so user traffic is routed, while the database remains perfectly isolated.
+                    </div>
+                </details>
+                <details>
+                    <summary>Q3: What happens when a container dynamically disconnects from a bridge network?</summary>
+                    <div class="faq-content">
+                        Docker's virtual network switch deletes the container's network interface card (veth). The DNS server removes its entry immediately, and socket attempts to its hostname instantly fail with `ENOTFOUND`, shielding it from other containers.
+                    </div>
+                </details>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Toast Popup Feedback banner -->
+    <div id="toast-banner" class="toast-badge-popup">
+        <span>✓ Connected to bridge network!</span>
+    </div>
+
+    <script>
+        // Simulator States
+        let databaseConnected = true;
+        let visitCounter = 0;
+
+        // DOM elements
+        const dnsBadge = document.getElementById('dns-badge');
+        const wireHost = document.getElementById('wire-host');
+        const wireDb = document.getElementById('wire-db');
+        const nodeDb = document.getElementById('node-db');
+        
+        const btnConnect = document.getElementById('btn-connect');
+        const btnDisconnect = document.getElementById('btn-disconnect');
+        
+        const metricHits = document.getElementById('metric-hits');
+        const metricStorage = document.getElementById('metric-storage');
+        const metricDns = document.getElementById('metric-dns-address');
+        
+        const networkConsole = document.getElementById('network-console');
+        const toastBanner = document.getElementById('toast-banner');
+
+        // 1. Simulate client web request routing
+        function sendApiRequest() {
+            // Pulse Host Workstation -> Web App line
+            wireHost.classList.add('syncing');
+            addLog("System: Client Workstation HTTP GET request initiated to port :8080", "sys");
+            addLog("System: Request routed: Host HostPort 8080 ➔ Container Port 3000", "info");
+
+            setTimeout(() => {
+                if (databaseConnected) {
+                    // Success Path: DNS resolves, contact Redis cache
+                    wireDb.classList.add('syncing');
+                    addLog("web-app: Resolving DB service name 'cache-db'...", "info");
+                    
+                    setTimeout(() => {
+                        addLog("web-app: [DNS OK] cache-db successfully resolved to private IP 172.18.0.2", "succ");
+                        addLog("web-app: Socket connection opened: cache-db:6379", "succ");
+                        
+                        visitCounter++;
+                        metricHits.innerText = visitCounter;
+                        metricStorage.innerText = "Redis Cache (Online)";
+                        metricStorage.style.color = "var(--secondary)";
+
+                        addLog(`cache-db: Incremented hits counter value. Registered hit ID #${visitCounter}.`, "succ");
+                        
+                        // Clean wires
+                        setTimeout(() => {
+                            wireHost.classList.remove('syncing');
+                            wireDb.classList.remove('syncing');
+                            addLog("System: Web-app completed transactional response back to Client workstation (Status: 200 OK).", "succ");
+                            showToast("✓ Count synchronized to Redis cache!");
+                        }, 500);
+
+                    }, 800);
+                } else {
+                    // Degraded Path: DNS fails, local fallback
+                    addLog("web-app: Resolving DB service name 'cache-db'...", "info");
+                    
+                    setTimeout(() => {
+                        addLog("web-app: [DNS FAIL] hostname 'cache-db' could not be resolved! Host unreachable.", "fail");
+                        addLog("web-app: [Warning] Lost db link. Falling back to local RAM memory database.", "fail");
+                        
+                        visitCounter++;
+                        metricHits.innerText = visitCounter;
+                        metricStorage.innerText = "RAM Memory (Local)";
+                        metricStorage.style.color = "var(--rose)";
+
+                        addLog(`web-app: Logged hit ID #${visitCounter} in ephemeral local RAM cache.`, "info");
+                        
+                        // Clean wires
+                        setTimeout(() => {
+                            wireHost.classList.remove('syncing');
+                            addLog("System: Web-app returned degraded response to Client workstation (Status: 200 Degraded).", "sys");
+                            showToast("⚠️ Degraded: local memory fallback");
+                        }, 500);
+
+                    }, 800);
+                }
+            }, 800);
+        }
+
+        // 2. Simulate Docker network disconnect/connect switches
+        function toggleDatabaseNetwork(joinNetwork) {
+            if (joinNetwork) {
+                databaseConnected = true;
+                
+                // Toggle styles
+                nodeDb.classList.add('online');
+                wireDb.className = "bridge-wire active linked-db";
+                dnsBadge.innerText = "DNS: ACTIVE";
+                dnsBadge.className = "card-header-badge status-green";
+
+                btnConnect.disabled = true;
+                btnDisconnect.disabled = false;
+
+                metricDns.innerText = "cache-db ➔ 172.18.0.2";
+                metricDns.style.color = "var(--purple)";
+
+                addLog("System: Executing 'docker network connect app-net cache-db'...", "sys");
+                addLog("cache-db: Initialized virtual card interface veth-redis.", "info");
+                addLog("System: Registered service 'cache-db' domain ➔ Subnet IP: 172.18.0.2", "succ");
+                showToast("✓ Joined bridge network!");
+            } else {
+                databaseConnected = false;
+                
+                // Toggle styles
+                nodeDb.classList.remove('online');
+                wireDb.className = "bridge-wire";
+                dnsBadge.innerText = "DNS: ISOLATED";
+                dnsBadge.className = "card-header-badge status-red";
+
+                btnConnect.disabled = false;
+                btnDisconnect.disabled = true;
+
+                metricDns.innerText = "Failed to resolve hostname";
+                metricDns.style.color = "var(--rose)";
+
+                addLog("System: Executing 'docker network disconnect app-net cache-db'...", "fail");
+                addLog("cache-db: Removed interface connection from bridge app-net.", "fail");
+                addLog("System: Deregistered hostname 'cache-db' from DNS server.", "fail");
+                showToast("❌ Isolated from bridge!");
+            }
+        }
+
+        // Console logs helper
+        function addLog(text, type) {
+            const time = new Date().toLocaleTimeString();
+            let c = "log-sys";
+            if (type === "succ") c = "log-succ";
+            if (type === "fail") c = "log-fail";
+            if (type === "info") c = "log-info";
+
+            networkConsole.innerHTML += `\n<span style="color: var(--text-muted);">[${time}]</span> <span class="${c}">${text}</span>`;
+            networkConsole.scrollTop = networkConsole.scrollHeight;
+        }
+
+        function clearLogs() {
+            networkConsole.innerHTML = "[System] Terminal diagnostics cleared. Awaiting commands.";
+        }
+
+        // Toast Popup Helper
+        function showToast(msg) {
+            toastBanner.innerHTML = `<span>${msg}</span>`;
+            toastBanner.classList.add('show');
+            setTimeout(() => {
+                toastBanner.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
