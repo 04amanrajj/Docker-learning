@@ -1,0 +1,9 @@
+# Network Playground Ignore build context
+node_modules
+npm-debug.log
+.dockerignore
+Dockerfile
+run-network.sh
+.git
+.gitignore
+README.md
