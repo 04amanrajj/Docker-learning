@@ -1,0 +1,13 @@
+{
+  "name": "composedock-backend",
+  "version": "1.0.0",
+  "description": "Docker Compose backend REST API - Day 9",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.11.3"
+  }
+}
