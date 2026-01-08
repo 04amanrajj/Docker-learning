@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposeDock Workspace - Day 9</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="glow-orb" class="glow-orb"></div>
+    <div class="glow-orb-2"></div>
+
+    <div class="wrapper">
+        <header>
+            <div class="badge">Week 2 • Day 9</div>
+            <h1 id="app-title">ComposeDock Workspace</h1>
+            <p class="subtitle">
+                A production-grade three-tier full-stack application orchestrated seamlessly using a single <strong>docker-compose.yml</strong> configuration. Nginx Frontend, Express Backend, and PostgreSQL Relational DB.
+            </p>
+        </header>
+
+        <!-- Dashboard Grid Layout -->
+        <div class="dashboard-grid">
+            
+            <!-- Left Panel: Relational Task Manager -->
+            <div class="glass-card" style="flex: 1.25;">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                        Compose Relational Kanban
+                    </h2>
+                    <span id="task-badge" class="card-header-badge">0 Tasks Synced</span>
+                </div>
+
+                <!-- Add Task Row -->
+                <form id="task-form" class="task-add-row">
+                    <input id="task-input" type="text" class="task-field" placeholder="Create a new task backed by PostgreSQL persistence..." required>
+                    <button type="submit" class="btn-submit">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                </form>
+
+                <!-- Kanban Columns -->
+                <div class="kanban-board">
+                    <!-- Column 1: TO DO -->
+                    <div class="kanban-col">
+                        <div class="col-hdr">
+                            <span class="col-dot dot-todo"></span>
+                            <span class="col-title">To Do</span>
+                        </div>
+                        <div id="list-todo" class="tasks-dropzone"></div>
+                    </div>
+
+                    <!-- Column 2: IN PROGRESS -->
+                    <div class="kanban-col">
+                        <div class="col-hdr">
+                            <span class="col-dot dot-progress"></span>
+                            <span class="col-title">In Progress</span>
+                        </div>
+                        <div id="list-progress" class="tasks-dropzone"></div>
+                    </div>
+
+                    <!-- Column 3: DONE -->
+                    <div class="kanban-col">
+                        <div class="col-hdr">
+                            <span class="col-dot dot-done"></span>
+                            <span class="col-title">Done</span>
+                        </div>
+                        <div id="list-done" class="tasks-dropzone"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Stack Telemetry & Diagnostics -->
+            <div class="sidebar-stack" style="flex: 0.75;">
+                
+                <!-- Container Diagnostics Telemetry -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            Compose Stack
+                        </h2>
+                        <span id="conn-badge" class="card-header-badge status-red">OFFLINE</span>
+                    </div>
+
+                    <div class="diagnostics-panel">
+                        <div class="diag-row">
+                            <span class="diag-label">Frontend Server</span>
+                            <span class="diag-value text-blue">Nginx Alpine</span>
+                        </div>
+                        <div class="diag-row">
+                            <span class="diag-label">Backend Host</span>
+                            <span id="diag-backend-host" class="diag-value">Resolving...</span>
+                        </div>
+                        <div class="diag-row">
+                            <span class="diag-label">Database Health</span>
+                            <span id="diag-db-health" class="diag-value text-red">offline</span>
+                        </div>
+                        <div class="diag-row">
+                            <span class="diag-label">Database Host</span>
+                            <span id="diag-db-host" class="diag-value">Resolving...</span>
+                        </div>
+                        <div class="diag-row">
+                            <span class="diag-label">Engine Uptime</span>
+                            <span id="diag-uptime" class="diag-value">0s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compose CLI Command Quick Reference -->
+                <div class="glass-card" style="padding: 1.5rem;">
+                    <h3 class="card-title" style="font-size: 1.1rem; margin-bottom: 0.25rem;">
+                        ⚡ Compose Commands
+                    </h3>
+                    
+                    <div class="command-ref-box">
+                        <div class="cmd-strip" onclick="copyCommand('docker compose up -d')">
+                            <span class="cmd-syntax">docker compose up -d</span>
+                            <span class="cmd-desc">Boot stack in daemon mode</span>
+                        </div>
+                        <div class="cmd-strip" onclick="copyCommand('docker compose ps')">
+                            <span class="cmd-syntax">docker compose ps</span>
+                            <span class="cmd-desc">Inspect active containers</span>
+                        </div>
+                        <div class="cmd-strip" onclick="copyCommand('docker compose logs -f')">
+                            <span class="cmd-syntax">docker compose logs -f</span>
+                            <span class="cmd-desc">View combined terminal outputs</span>
+                        </div>
+                        <div class="cmd-strip" onclick="copyCommand('docker compose down')">
+                            <span class="cmd-syntax">docker compose down</span>
+                            <span class="cmd-desc">Shutdown stack safely</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Popup -->
+    <div id="toast-banner" class="toast-popup">
+        <span>✓ Command copied to clipboard!</span>
+    </div>
+
+    <!-- JS Client Logic -->
+    <script>
+        // API Base URL running exposed on Host Port 5000
+        const API_URL = 'http://localhost:5000';
+
+        // DOM nodes
+        const listTodo = document.getElementById('list-todo');
+        const listProgress = document.getElementById('list-progress');
+        const listDone = document.getElementById('list-done');
+        const taskForm = document.getElementById('task-form');
+        const taskInput = document.getElementById('task-input');
+        const taskBadge = document.getElementById('task-badge');
+        const connBadge = document.getElementById('conn-badge');
+        const toastBanner = document.getElementById('toast-banner');
+
+        const diagBackendHost = document.getElementById('diag-backend-host');
+        const diagDbHealth = document.getElementById('diag-db-health');
+        const diagDbHost = document.getElementById('diag-db-host');
+        const diagUptime = document.getElementById('diag-uptime');
+        const glowOrb = document.getElementById('glow-orb');
+        const appTitle = document.getElementById('app-title');
+
+        // 1. Fetch Tasks
+        async function fetchTasks() {
+            try {
+                const res = await fetch(`${API_URL}/api/tasks`);
+                if (!res.ok) throw new Error("API unreachable");
+                const tasks = await res.json();
+                renderTasks(tasks);
+            } catch (err) {
+                console.error("Failed to query tasks", err);
+                renderTasks([]);
+            }
+        }
+
+        // 2. Render Kanban Columns
+        function renderTasks(tasks) {
+            listTodo.innerHTML = "";
+            listProgress.innerHTML = "";
+            listDone.innerHTML = "";
+
+            taskBadge.innerText = `${tasks.length} Tasks Synced`;
+
+            if (tasks.length === 0) {
+                listTodo.innerHTML = `<div class="empty-msg">No tasks found</div>`;
+                listProgress.innerHTML = `<div class="empty-msg">No tasks found</div>`;
+                listDone.innerHTML = `<div class="empty-msg">No tasks found</div>`;
+                return;
+            }
+
+            tasks.forEach(task => {
+                const card = document.createElement('div');
+                card.className = "task-card";
+                card.innerHTML = `
+                    <div class="task-card-title">${task.title}</div>
+                    <div class="task-card-footer">
+                        <span class="task-card-date">#${task.id}</span>
+                        <div class="task-card-actions">
+                            ${task.status !== 'todo' ? `<button onclick="moveTask(${task.id}, 'todo')" title="Move to To Do" class="action-btn">◀</button>` : ''}
+                            ${task.status !== 'in-progress' ? `<button onclick="moveTask(${task.id}, 'in-progress')" title="Move to In Progress" class="action-btn">⚡</button>` : ''}
+                            ${task.status !== 'done' ? `<button onclick="moveTask(${task.id}, 'done')" title="Complete Task" class="action-btn">▶</button>` : ''}
+                            <button onclick="deleteTask(${task.id})" title="Delete Task" class="action-btn btn-del">🗑️</button>
+                        </div>
+                    </div>
+                `;
+
+                if (task.status === 'todo') listTodo.appendChild(card);
+                if (task.status === 'in-progress') listProgress.appendChild(card);
+                if (task.status === 'done') listDone.appendChild(card);
+            });
+
+            // Fill placeholders for empty columns
+            if (listTodo.children.length === 0) listTodo.innerHTML = `<div class="empty-msg">No tasks found</div>`;
+            if (listProgress.children.length === 0) listProgress.innerHTML = `<div class="empty-msg">No tasks found</div>`;
+            if (listDone.children.length === 0) listDone.innerHTML = `<div class="empty-msg">No tasks found</div>`;
+        }
+
+        // 3. Create Task
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = taskInput.value.trim();
+            if (!title) return;
+
+            try {
+                const res = await fetch(`${API_URL}/api/tasks`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title })
+                });
+                if (res.ok) {
+                    taskInput.value = "";
+                    fetchTasks();
+                    showToast("✓ Task written to PostgreSQL DB!");
+                }
+            } catch (err) {
+                console.error("Failed to add task", err);
+            }
+        });
+
+        // 4. Move Task
+        async function moveTask(id, newStatus) {
+            try {
+                const res = await fetch(`${API_URL}/api/tasks/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                if (res.ok) {
+                    fetchTasks();
+                    showToast(`✓ Status updated to ${newStatus}!`);
+                }
+            } catch (err) {
+                console.error("Failed to update status", err);
+            }
+        }
+
+        // 5. Delete Task
+        async function deleteTask(id) {
+            try {
+                const res = await fetch(`${API_URL}/api/tasks/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    fetchTasks();
+                    showToast("🗑️ Task deleted from relational database!");
+                }
+            } catch (err) {
+                console.error("Failed to delete task", err);
+            }
+        }
+
+        // 6. Query Diagnostics
+        async function queryDiagnostics() {
+            try {
+                const res = await fetch(`${API_URL}/api/diagnostics`);
+                const data = await res.json();
+
+                connBadge.innerText = "ONLINE";
+                connBadge.className = "card-header-badge status-green";
+
+                diagBackendHost.innerText = data.containerHost || 'compose-backend';
+                diagBackendHost.className = "diag-value text-blue";
+                
+                if (data.database && data.database.status === 'healthy') {
+                    diagDbHealth.innerText = "optimal";
+                    diagDbHealth.className = "diag-value text-green";
+                } else {
+                    diagDbHealth.innerText = "degraded";
+                    diagDbHealth.className = "diag-value text-red";
+                }
+
+                diagDbHost.innerText = data.database.host || 'compose-db';
+                diagDbHost.className = "diag-value text-green";
+
+                // Format Uptime
+                const up = Math.floor(data.uptime);
+                const hrs = Math.floor(up / 3600);
+                const mins = Math.floor((up % 3600) / 60);
+                const secs = up % 60;
+                diagUptime.innerText = `${hrs > 0 ? hrs+'h ' : ''}${mins > 0 ? mins+'m ' : ''}${secs}s`;
+
+            } catch (e) {
+                console.error("Diagnostics unreachable", e);
+                connBadge.innerText = "OFFLINE";
+                connBadge.className = "card-header-badge status-red";
+                diagBackendHost.innerText = "Resolving...";
+                diagBackendHost.className = "diag-value";
+                diagDbHealth.innerText = "offline";
+                diagDbHealth.className = "diag-value text-red";
+                diagDbHost.innerText = "Resolving...";
+                diagDbHost.className = "diag-value";
+            }
+        }
+
+        // Quick Reference Copy Trigger
+        function copyCommand(cmd) {
+            navigator.clipboard.writeText(cmd).then(() => {
+                showToast(`✓ Copied: ${cmd}`);
+            });
+        }
+
+        function showToast(msg) {
+            toastBanner.innerHTML = `<span>${msg}</span>`;
+            toastBanner.classList.add('show');
+            setTimeout(() => {
+                toastBanner.classList.remove('show');
+            }, 3000);
+        }
+
+        // Init loops
+        fetchTasks();
+        queryDiagnostics();
+        setInterval(fetchTasks, 3000);
+        setInterval(queryDiagnostics, 4000);
+    </script>
+</body>
+</html>
