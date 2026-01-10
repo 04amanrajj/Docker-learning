@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeDock Workspace - Day 10</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="glow-orb" class="glow-orb"></div>
+    <div class="glow-orb-2"></div>
+
+    <div class="wrapper">
+        <header>
+            <div class="badge">Week 2 • Day 10</div>
+            <h1 id="app-title">TimeDock Tracker</h1>
+            <p class="subtitle">
+                Advanced three-tier relational productivity dashboard. Manage tasks, start/stop timers, calculate active durations, and inspect container telemetries. Backed by PostgreSQL and hosted on custom Compose bridges.
+            </p>
+        </header>
+
+        <!-- Dashboard Grid Layout -->
+        <div class="dashboard-grid">
+            
+            <!-- Left Workspace: Relational Timer Logs -->
+            <div class="glass-card" style="flex: 1.2;">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Productivity Timers
+                    </h2>
+                    <span id="entries-badge" class="card-header-badge">0 Logs Synced</span>
+                </div>
+
+                <!-- Start Timer Form -->
+                <form id="timer-form" class="timer-start-row">
+                    <input id="project-input" type="text" class="timer-field" style="flex: 0.35;" placeholder="Project name (e.g. Docker)..." required>
+                    <input id="description-input" type="text" class="timer-field" style="flex: 0.65;" placeholder="What task description are you starting right now?" required>
+                    <button type="submit" class="btn-start" title="Start Tracking Time">
+                        ⚡ Start
+                    </button>
+                </form>
+
+                <!-- Time entries listings -->
+                <div class="timer-list-wrapper">
+                    <div class="timer-list-hdr">
+                        <span>Project / Description</span>
+                        <span>Start Time / Status</span>
+                        <span>Duration</span>
+                        <span>Actions</span>
+                    </div>
+                    <div id="timers-container">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Workspace: Stats & Telemetry -->
+            <div class="sidebar-stack" style="flex: 0.8;">
+                
+                <!-- Telemetry stats -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            Compose Engine
+                        </h2>
+                        <span id="conn-badge" class="card-header-badge status-red">OFFLINE</span>
+                    </div>
+
+                    <div class="diagnostics-panel">
+                        <div class="diag-row">
+                            <span class="diag-label">Frontend Server</span>
+                            <span class="diag-value text-blue">Nginx Alpine</span>
+                        </div>
+                        <div class="diag-row">
+                            <span class="diag-label">Backend Host</span>
+                            <span id="diag-backend-host" class="diag-value">Resolving...</span>
+                        </div>
+                        <div class="diag-row">
+                            <span class="diag-label">Database Health</span>
+                            <span id="diag-db-health" class="diag-value text-red">offline</span>
+                        </div>
+                        <div class="diag-row">
+                            <span class="diag-label">Database Host</span>
+                            <span id="diag-db-host" class="diag-value">Resolving...</span>
+                        </div>
+                        <div class="diag-row">
+                            <span class="diag-label">Total Time Tracked</span>
+                            <span id="diag-total-time" class="diag-value text-green">0s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Docker Compose V2 controls quick refs -->
+                <div class="glass-card" style="padding: 1.5rem;">
+                    <h3 class="card-title" style="font-size: 1.1rem; margin-bottom: 0.25rem;">
+                        ⚙️ Stack Management
+                    </h3>
+                    <div class="command-ref-box">
+                        <div class="cmd-strip" onclick="copyCmd('docker compose up -d')">
+                            <span class="cmd-syntax">docker compose up -d</span>
+                            <span class="cmd-desc">Deploy TimeDock stack in daemon mode</span>
+                        </div>
+                        <div class="cmd-strip" onclick="copyCmd('docker compose ps')">
+                            <span class="cmd-syntax">docker compose ps</span>
+                            <span class="cmd-desc">Inspect multi-tier running nodes</span>
+                        </div>
+                        <div class="cmd-strip" onclick="copyCmd('docker compose logs -f')">
+                            <span class="cmd-syntax">docker compose logs -f</span>
+                            <span class="cmd-desc">Stream combined logs aggregated CLI</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast clipboard popups -->
+    <div id="toast-banner" class="toast-popup">
+        <span>✓ Action completed!</span>
+    </div>
+
+    <!-- Client Script -->
+    <script>
+        const API_URL = 'http://localhost:5001';
+
+        const timerForm = document.getElementById('timer-form');
+        const projectInput = document.getElementById('project-input');
+        const descriptionInput = document.getElementById('description-input');
+        const timersContainer = document.getElementById('timers-container');
+        const entriesBadge = document.getElementById('entries-badge');
+        const connBadge = document.getElementById('conn-badge');
+        
+        const diagBackendHost = document.getElementById('diag-backend-host');
+        const diagDbHealth = document.getElementById('diag-db-health');
+        const diagDbHost = document.getElementById('diag-db-host');
+        const diagTotalTime = document.getElementById('diag-total-time');
+        const toastBanner = document.getElementById('toast-banner');
+
+        // Fetch Timer Entries
+        async function fetchTimers() {
+            try {
+                const res = await fetch(`${API_URL}/api/timers`);
+                if (!res.ok) throw new Error("API Offline");
+                const timers = await res.json();
+                renderTimers(timers);
+            } catch (err) {
+                console.error("API Fetch error", err);
+                renderTimers([]);
+            }
+        }
+
+        // Render listings
+        function renderTimers(timers) {
+            timersContainer.innerHTML = "";
+            entriesBadge.innerText = `${timers.length} Logs Synced`;
+
+            if (timers.length === 0) {
+                timersContainer.innerHTML = `<div class="empty-list-msg">No productivity logs captured. Start tracking now!</div>`;
+                diagTotalTime.innerText = "0s";
+                return;
+            }
+
+            let totalSeconds = 0;
+
+            timers.forEach(timer => {
+                const row = document.createElement('div');
+                row.className = `timer-row ${timer.end_time ? '' : 'timer-active'}`;
+                
+                // Calculate durations
+                let durationStr = "N/A";
+                let actionBtn = "";
+
+                if (timer.end_time) {
+                    totalSeconds += parseInt(timer.duration_seconds || 0);
+                    durationStr = formatDuration(timer.duration_seconds);
+                } else {
+                    durationStr = `<span class="pulse-span">TRACKING</span>`;
+                    actionBtn = `<button onclick="stopTimer(${timer.id})" class="timer-stop-btn">Stop</button>`;
+                }
+
+                // Date formats
+                const sDate = new Date(timer.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                row.innerHTML = `
+                    <div class="cell-desc">
+                        <strong class="text-blue">[${timer.project_name}]</strong>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 3px;">${timer.task_description}</div>
+                    </div>
+                    <div class="cell-meta">
+                        <div style="font-size: 0.8rem; font-weight: 600;">${sDate}</div>
+                        <div style="font-size: 0.65rem; color: var(--text-muted);">${timer.end_time ? 'complete' : 'in-progress'}</div>
+                    </div>
+                    <div class="cell-dur font-mono">${durationStr}</div>
+                    <div class="cell-actions">
+                        ${actionBtn}
+                        <button onclick="deleteTimer(${timer.id})" class="timer-row-del-btn" title="Delete Log">🗑️</button>
+                    </div>
+                `;
+                timersContainer.appendChild(row);
+            });
+
+            diagTotalTime.innerText = formatDuration(totalSeconds);
+        }
+
+        // Format duration helper
+        function formatDuration(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return `${h > 0 ? h+'h ' : ''}${m > 0 ? m+'m ' : ''}${s}s`;
+        }
+
+        // Submit new timer
+        timerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const project_name = projectInput.value.trim();
+            const task_description = descriptionInput.value.trim();
+
+            if (!project_name || !task_description) return;
+
+            try {
+                const res = await fetch(`${API_URL}/api/timers`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ project_name, task_description })
+                });
+                if (res.ok) {
+                    projectInput.value = "";
+                    descriptionInput.value = "";
+                    fetchTimers();
+                    showToast("⚡ Timer tracking launched!");
+                }
+            } catch (err) {
+                console.error("Timer start fail", err);
+            }
+        });
+
+        // Stop timer
+        async function stopTimer(id) {
+            try {
+                const res = await fetch(`${API_URL}/api/timers/${id}/stop`, { method: 'PUT' });
+                if (res.ok) {
+                    fetchTimers();
+                    showToast("✓ Timer stopped! Time logged to database.");
+                }
+            } catch (err) {
+                console.error("Timer stop fail", err);
+            }
+        }
+
+        // Delete timer
+        async function deleteTimer(id) {
+            try {
+                const res = await fetch(`${API_URL}/api/timers/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    fetchTimers();
+                    showToast("🗑️ Productivity log cleared.");
+                }
+            } catch (err) {
+                console.error("Timer delete fail", err);
+            }
+        }
+
+        // Query diagnostics
+        async function queryDiagnostics() {
+            try {
+                const res = await fetch(`${API_URL}/api/diagnostics`);
+                const data = await res.json();
+
+                connBadge.innerText = "ONLINE";
+                connBadge.className = "card-header-badge status-green";
+
+                diagBackendHost.innerText = data.containerHost || 'timedock-backend';
+                diagBackendHost.className = "diag-value text-blue";
+
+                if (data.database && data.database.status === 'healthy') {
+                    diagDbHealth.innerText = "optimal";
+                    diagDbHealth.className = "diag-value text-green";
+                } else {
+                    diagDbHealth.innerText = "degraded";
+                    diagDbHealth.className = "diag-value text-red";
+                }
+
+                diagDbHost.innerText = data.database.host || 'timedock-db';
+                diagDbHost.className = "diag-value text-green";
+
+            } catch (err) {
+                console.error("Diagnostics offline", err);
+                connBadge.innerText = "OFFLINE";
+                connBadge.className = "card-header-badge status-red";
+                
+                diagBackendHost.innerText = "Resolving...";
+                diagBackendHost.className = "diag-value";
+                diagDbHealth.innerText = "offline";
+                diagDbHealth.className = "diag-value text-red";
+                diagDbHost.innerText = "Resolving...";
+                diagDbHost.className = "diag-value";
+            }
+        }
+
+        // Clipboards
+        function copyCmd(cmd) {
+            navigator.clipboard.writeText(cmd).then(() => {
+                showToast(`✓ Copied: ${cmd}`);
+            });
+        }
+
+        function showToast(msg) {
+            toastBanner.innerHTML = `<span>${msg}</span>`;
+            toastBanner.classList.add('show');
+            setTimeout(() => {
+                toastBanner.classList.remove('show');
+            }, 3000);
+        }
+
+        // Loops
+        fetchTimers();
+        queryDiagnostics();
+        setInterval(fetchTimers, 3000);
+        setInterval(queryDiagnostics, 4000);
+    </script>
+</body>
+</html>
