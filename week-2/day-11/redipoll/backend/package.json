@@ -1,0 +1,13 @@
+{
+  "name": "redipoll-backend",
+  "version": "1.0.0",
+  "description": "Docker Compose high-speed Redis voting API - Day 11",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "redis": "^4.6.13"
+  }
+}
