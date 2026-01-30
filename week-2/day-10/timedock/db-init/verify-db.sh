@@ -6,11 +6,11 @@ echo "⚙️ PostgreSQL Connection & Seed Integrity Check"
 echo "==================================================="
 
 # Attempt to query seed tasks table inside running postgres process
-if pg_isready -h localhost -p 5433 -U postgres; then
-    echo "✓ Database port 5433 is responding to socket requests."
+if pg_isready -h localhost -p 5432 -U postgres; then
+    echo "✓ Database port 5432 is responding to socket requests."
     
     # Query row counts
-    count=$(psql -h localhost -p 5433 -U postgres -d postgres -t -c "SELECT COUNT(*) FROM time_entries;" | tr -d '[:space:]')
+    count=$(psql -h localhost -p 5432 -U postgres -d postgres -t -c "SELECT COUNT(*) FROM time_entries;" | tr -d '[:space:]')
     echo "✓ Detected seeded task records in database: $count"
     
     if [ "$count" -gt 0 ]; then
