@@ -6,7 +6,7 @@ services:
     image: postgres:16-alpine
     container_name: timedock-db
     ports:
-      - "5433:5432"
+      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgressecret
@@ -29,7 +29,7 @@ services:
       dockerfile: Dockerfile
     container_name: timedock-backend
     ports:
-      - "5001:5000"
+      - "5000:5000"
     environment:
       PORT: 5000
       DB_HOST: timedock-db
@@ -51,7 +51,7 @@ services:
       dockerfile: Dockerfile
     container_name: timedock-frontend
     ports:
-      - "8081:80"
+      - "8080:80"
     depends_on:
       - backend
     networks:
