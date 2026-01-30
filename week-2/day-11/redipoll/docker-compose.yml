@@ -19,7 +19,7 @@ services:
       dockerfile: Dockerfile
     container_name: redipoll-backend
     ports:
-      - "5002:5000"
+      - "5000:5000"
     environment:
       PORT: 5000
       REDIS_HOST: redipoll-cache
@@ -39,7 +39,7 @@ services:
       dockerfile: Dockerfile
     container_name: redipoll-frontend
     ports:
-      - "8082:80"
+      - "8080:80"
     depends_on:
       - backend
     networks:
