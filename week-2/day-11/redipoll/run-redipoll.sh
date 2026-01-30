@@ -22,8 +22,8 @@ docker compose up -d --build
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Success! All three services are running.${NC}"
     echo -e "${GREEN}✓ Port Allocations:${NC}"
-    echo -e "  - Polling Web UI : ${PURPLE}http://localhost:8082${NC}"
-    echo -e "  - Express API    : ${PURPLE}http://localhost:5002${NC}"
+    echo -e "  - Polling Web UI : ${PURPLE}http://localhost:8080${NC}"
+    echo -e "  - Express API    : ${PURPLE}http://localhost:5000${NC}"
     echo -e "  - Redis Memory   : ${PURPLE}redipoll-cache:6379 (Isolated)${NC}"
     echo -e "\n${GREEN}===================================================${NC}"
     echo -e "${GREEN}🎉 RediPoll sandbox cache pipeline is active!${NC}"
