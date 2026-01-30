@@ -22,9 +22,9 @@ docker compose up -d --build
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Success! All three services launched successfully.${NC}"
     echo -e "${GREEN}✓ Port Mappings:${NC}"
-    echo -e "  - Frontend Web UI : ${PURPLE}http://localhost:8081${NC}"
-    echo -e "  - Express API REST: ${PURPLE}http://localhost:5001${NC}"
-    echo -e "  - PostgreSQL RelDB: ${PURPLE}localhost:5433${NC}"
+    echo -e "  - Frontend Web UI : ${PURPLE}http://localhost:8080${NC}"
+    echo -e "  - Express API REST: ${PURPLE}http://localhost:5000${NC}"
+    echo -e "  - PostgreSQL RelDB: ${PURPLE}localhost:5432${NC}"
     echo -e "\n${GREEN}===================================================${NC}"
     echo -e "${GREEN}🎉 TimeDock Sandbox is fully functional!${NC}"
     echo -e "${GREEN}===================================================${NC}"
