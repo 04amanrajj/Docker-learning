@@ -1,0 +1,84 @@
+services:
+  # ---------------------------------------------------
+  # 1. DATABASE NODE: PostgreSQL Relational Database
+  # ---------------------------------------------------
+  database:
+    image: postgres:16-alpine
+    container_name: healthdock-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgressecret
+      POSTGRES_DB: postgres
+    # Named volume for Postgres durable time logs data persistence
+    volumes:
+      - healthdock-db-data:/var/lib/postgresql/data
+    # 🩺 DATABASE HEALTHCHECK: Monitors SQL socket readiness before depending nodes launch
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - healthdock-net
+    restart: always
+
+  # ---------------------------------------------------
+  # 2. BACKEND API NODE: Express healthcheck mock API server
+  # ---------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: healthdock-backend
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      DB_HOST: healthdock-db
+      DB_USER: postgres
+      DB_PASSWORD: postgressecret
+      DB_NAME: postgres
+    # 🩺 BACKEND HEALTHCHECK: Probes the dynamic health verification status endpoint
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    # 🚦 ORDERED BOOT SEQUENCE: Launches ONLY once the database passes its pg_isready healthcheck!
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - healthdock-net
+    restart: always
+
+  # ---------------------------------------------------
+  # 3. FRONTEND static Nginx client visualizer
+  # ---------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: healthdock-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - healthdock-net
+    restart: always
+
+# ---------------------------------------------------
+# NETWORK & VOLUME BOUNDARIES
+# ---------------------------------------------------
+volumes:
+  healthdock-db-data:
+    driver: local
+
+networks:
+  healthdock-net:
+    driver: bridge
