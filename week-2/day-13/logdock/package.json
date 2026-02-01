@@ -1,0 +1,10 @@
+{
+  "name": "logdock-engine",
+  "version": "1.0.0",
+  "description": "Docker Container Logging and Exec Sandbox - Day 13",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {}
+}
