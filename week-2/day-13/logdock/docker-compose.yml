@@ -1,0 +1,20 @@
+services:
+  # ---------------------------------------------------
+  # LOG ENGINE: High-frequency logs generating node
+  # ---------------------------------------------------
+  logdock-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: logdock-app
+    # Persistent anonymous volume for audit entries
+    volumes:
+      - logdock-audit-data:/usr/src/app/logs
+    restart: always
+
+# ---------------------------------------------------
+# STORAGE VOLUMES
+# ---------------------------------------------------
+volumes:
+  logdock-audit-data:
+    driver: local
