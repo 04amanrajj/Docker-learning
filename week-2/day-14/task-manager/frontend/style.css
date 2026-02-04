@@ -296,6 +296,26 @@ h1 {
     color: var(--text-muted);
 }
 
+.btn-inspect {
+    background: rgba(13, 183, 237, 0.1);
+    border: 1px solid rgba(13, 183, 237, 0.3);
+    color: var(--primary);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.btn-inspect:hover {
+    background: var(--primary);
+    color: #020617;
+    box-shadow: 0 0 12px var(--primary-glow);
+}
+
 .btn-check {
     background: rgba(16, 185, 129, 0.1);
     border: 1px solid rgba(16, 185, 129, 0.3);

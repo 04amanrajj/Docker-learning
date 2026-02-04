@@ -181,9 +181,14 @@
                         <p class="task-desc-text">${escapeHTML(task.description || 'No description provided.')}</p>
                         <span class="task-stamp">Created: ${new Date(task.created_at).toLocaleTimeString()}</span>
                     </div>
-                    <button class="btn-check" onclick="probeAndKillTask(${task.id})" title="Mark task as complete and purge cache">
-                        ✓ Complete
-                    </button>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button class="btn-inspect" onclick="probeTaskDetail(${task.id})" title="Probe task to check Cache Hit/Miss">
+                            🔍 Inspect
+                        </button>
+                        <button class="btn-check" onclick="killTask(${task.id})" title="Mark task as complete and purge cache">
+                            ✓ Complete
+                        </button>
+                    </div>
                 </div>
             `).join('');
         }
@@ -217,27 +222,34 @@
             }
         });
 
-        // Trigger individual Task ID fetch (Demonstrates Cache Hits vs Misses!)
-        async function probeAndKillTask(id) {
+        // Probe Task details to showcase Cache HIT vs MISS
+        async function probeTaskDetail(id) {
             try {
-                // First probe the task by ID to demonstrate Cache Hits / Misses
                 const start = performance.now();
                 const res = await fetch(`${API_URL}/api/tasks/${id}`);
                 const data = await res.json();
                 const duration = Math.round(performance.now() - start);
                 const cacheStatus = res.headers.get('X-Cache') || 'MISS';
 
-                showToast(`🎯 Cache query: ${cacheStatus} in ${duration}ms!`);
+                showToast(`🎯 Cache query for Task #${id}: ${cacheStatus} in ${duration}ms!`);
+                queryDiagnostics();
+            } catch (err) {
+                console.error(err);
+                showToast("❌ Failed to query task cache.");
+            }
+        }
 
-                // Wait 1.5 seconds, then delete/purge it
-                setTimeout(async () => {
-                    const delRes = await fetch(`${API_URL}/api/tasks/${id}`, { method: 'DELETE' });
-                    if (delRes.ok) {
-                        showToast(`🧹 Purged Redis & DB records for Task #${id}!`);
-                        fetchTasks();
-                        queryDiagnostics();
-                    }
-                }, 1200);
+        // Direct delete/purge
+        async function killTask(id) {
+            try {
+                const delRes = await fetch(`${API_URL}/api/tasks/${id}`, { method: 'DELETE' });
+                if (delRes.ok) {
+                    showToast(`🧹 Marked Task #${id} complete & purged cache key!`);
+                    fetchTasks();
+                    queryDiagnostics();
+                } else {
+                    showToast("❌ Failed to delete task.");
+                }
             } catch (err) {
                 console.error(err);
             }
