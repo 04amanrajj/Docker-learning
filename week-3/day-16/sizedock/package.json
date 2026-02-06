@@ -1,0 +1,10 @@
+{
+  "name": "sizedock",
+  "version": "1.0.0",
+  "description": "Docker Image Layer Size Footprint Optimization - Day 16",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {}
+}
