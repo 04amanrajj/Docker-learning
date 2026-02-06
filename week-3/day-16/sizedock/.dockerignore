@@ -1,0 +1,6 @@
+node_modules
+npm-debug.log
+.dockerignore
+Dockerfile*
+.git
+heavy-bundle.tar.gz
