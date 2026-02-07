@@ -1,0 +1,23 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sizedock-backend
+    ports:
+      - "5000:5000"
+    # To execute "docker" commands dynamically if desired, we mount the docker socket:
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sizedock-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: always
