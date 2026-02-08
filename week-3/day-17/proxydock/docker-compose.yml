@@ -1,0 +1,27 @@
+services:
+  # ---------------------------------------------------
+  # 1. API SERVER: Telemetry application node (Private)
+  # ---------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: proxydock-backend
+    # Explicitly DO NOT map public ports! This secures the API behind Nginx.
+    expose:
+      - "5000"
+    restart: always
+
+  # ---------------------------------------------------
+  # 2. PROXY GATEWAY: Nginx Reverse Proxy (Public Entry)
+  # ---------------------------------------------------
+  gateway:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: proxydock-gateway
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: always
