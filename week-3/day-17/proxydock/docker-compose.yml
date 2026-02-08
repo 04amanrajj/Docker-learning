@@ -17,8 +17,8 @@ services:
   # ---------------------------------------------------
   gateway:
     build:
-      context: ./nginx
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./nginx/Dockerfile
     container_name: proxydock-gateway
     ports:
       - "8080:80"
