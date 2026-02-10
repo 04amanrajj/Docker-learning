@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecretDock Secrets Auditor - Day 19</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="glow-orb"></div>
+    <div class="glow-orb-2"></div>
+
+    <div class="wrapper">
+        <header>
+            <div class="badge">Week 3 • Day 19 • Docker Secrets</div>
+            <h1>SecretDock Auditor</h1>
+            <p class="subtitle">
+                Inspect a secure multi-tier cluster utilizing dynamic in-memory <strong>Docker Secrets</strong> mounted strictly inside `/run/secrets/` to decouple credentials from exposed environment variables.
+            </p>
+        </header>
+
+        <!-- Environment variable leak check banner -->
+        <div id="leak-alert-bar" class="alert-bar warning-alert">
+            🔑 AUDITING ENV STRUCTURES AND FILE-BASED SECRET SCHEMAS...
+        </div>
+
+        <div class="dashboard-grid">
+            
+            <!-- Left Card: Mounted Secrets Status -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <h2 class="card-title text-blue">📁 Mounted File Secrets (/run/secrets/*)</h2>
+                    <span class="card-header-badge status-green font-mono">FILE SYSTEM</span>
+                </div>
+
+                <div class="secrets-list">
+                    <div class="secret-row">
+                        <div class="secret-meta">
+                            <span class="secret-icon text-green">🔒</span>
+                            <div>
+                                <strong class="secret-name">db_password (PostgreSQL Root Pass)</strong>
+                                <p class="text-muted text-small">Mounted at: <span class="font-mono">/run/secrets/db_password</span></p>
+                            </div>
+                        </div>
+                        <div class="secret-value-box">
+                            <span id="secret-db-status" class="badge-status status-gray">PENDING</span>
+                            <span id="secret-db-masked" class="secret-masked font-mono">***</span>
+                        </div>
+                    </div>
+
+                    <div class="secret-row">
+                        <div class="secret-meta">
+                            <span class="secret-icon text-purple">🔑</span>
+                            <div>
+                                <strong class="secret-name">api_key (Third-Party Cloud Token)</strong>
+                                <p class="text-muted text-small">Mounted at: <span class="font-mono">/run/secrets/api_key</span></p>
+                            </div>
+                        </div>
+                        <div class="secret-value-box">
+                            <span id="secret-api-status" class="badge-status status-gray">PENDING</span>
+                            <span id="secret-api-masked" class="secret-masked font-mono">***</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Database status checks -->
+                <div class="db-audit-card">
+                    <div class="db-header">
+                        <span>Database Client Connection Status:</span>
+                        <strong id="db-conn-status" class="text-muted">PROBING...</strong>
+                    </div>
+                    <p class="text-small text-muted" id="db-resolved-desc">
+                        Initializing query handshakes...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right Card: Exposed Environmental Audit -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <h2 class="card-title text-purple">🚨 Exposed process.env Dump</h2>
+                    <span id="env-var-count" class="card-header-badge status-purple font-mono">0 VARIABLES</span>
+                </div>
+
+                <div class="env-audit-box">
+                    <p class="text-muted text-small list-info">
+                        This list represents standard system parameters loaded inside Node process memory. Production best practices mandate that no sensitive database passwords exist here:
+                    </p>
+                    
+                    <div class="env-table-wrapper">
+                        <table class="env-table">
+                            <thead>
+                                <tr>
+                                    <th>Variable Key</th>
+                                    <th>Active Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="env-table-body">
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted">Awaiting API payload...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <button class="btn-primary" onclick="interrogateSecrets()">
+                    🔄 Run Secrets Security Audit
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const leakAlertBar = document.getElementById('leak-alert-bar');
+        
+        const secretDbStatus = document.getElementById('secret-db-status');
+        const secretDbMasked = document.getElementById('secret-db-masked');
+        
+        const secretApiStatus = document.getElementById('secret-api-status');
+        const secretApiMasked = document.getElementById('secret-api-masked');
+
+        const dbConnStatus = document.getElementById('db-conn-status');
+        const dbResolvedDesc = document.getElementById('db-resolved-desc');
+
+        const envVarCount = document.getElementById('env-var-count');
+        const envTableBody = document.getElementById('env-table-body');
+
+        async function interrogateSecrets() {
+            leakAlertBar.innerText = "RUNNING SECURE CLUSTER SECURITY AUDIT...";
+            leakAlertBar.className = "alert-bar warning-alert";
+            
+            try {
+                const res = await fetch('/api/secrets');
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+
+                // 1. Alert bar status check
+                leakAlertBar.innerText = data.environmentAudit.leakWarning;
+                if (data.environmentAudit.leakWarning.includes('🚨')) {
+                    leakAlertBar.className = "alert-bar danger-alert";
+                } else {
+                    leakAlertBar.className = "alert-bar secure-alert";
+                }
+
+                // 2. Update File Secrets cards
+                secretDbStatus.innerText = data.secretsAudited.dbPasswordSecret.status.includes('ACTIVE') ? 'ACTIVE' : 'FALLBACK';
+                secretDbStatus.className = data.secretsAudited.dbPasswordSecret.status.includes('ACTIVE') ? 'badge-status status-green' : 'badge-status status-red';
+                secretDbMasked.innerText = data.secretsAudited.dbPasswordSecret.maskedValue;
+
+                secretApiStatus.innerText = data.secretsAudited.apiTokenSecret.status.includes('ACTIVE') ? 'ACTIVE' : 'FALLBACK';
+                secretApiStatus.className = data.secretsAudited.apiTokenSecret.status.includes('ACTIVE') ? 'badge-status status-green' : 'badge-status status-red';
+                secretApiMasked.innerText = data.secretsAudited.apiTokenSecret.maskedValue;
+
+                // 3. Update Database connect check logs
+                dbConnStatus.innerText = data.databaseState.status;
+                dbConnStatus.className = data.databaseState.status === 'HEALTHY' ? 'text-green font-mono' : 'text-red font-mono';
+                dbResolvedDesc.innerText = `PostgreSQL client successfully authenticated via: ${data.databaseState.resolvedVia}`;
+
+                // 4. Update process.env list dumps
+                envVarCount.innerText = `${data.environmentAudit.totalVariables} VARIABLES`;
+                
+                envTableBody.innerHTML = '';
+                const envList = data.environmentAudit.exposedEnvList;
+                Object.keys(envList).forEach(key => {
+                    const tr = document.createElement('tr');
+                    
+                    const tdKey = document.createElement('td');
+                    tdKey.className = 'font-mono text-blue text-bold';
+                    tdKey.innerText = key;
+
+                    const tdVal = document.createElement('td');
+                    tdVal.className = 'font-mono';
+                    tdVal.innerText = envList[key];
+
+                    // Highlight dynamic environment variable warning rows
+                    if (envList[key].includes('🚨')) {
+                        tr.className = 'danger-row';
+                        tdVal.className = 'font-mono text-red text-bold';
+                    }
+
+                    tr.appendChild(tdKey);
+                    tr.appendChild(tdVal);
+                    envTableBody.appendChild(tr);
+                });
+
+            } catch (err) {
+                console.error(err);
+                leakAlertBar.innerText = "❌ Secrets Auditing Probing Sockets Failed (Cluster Offline)";
+                leakAlertBar.className = "alert-bar danger-alert";
+                dbConnStatus.innerText = "OFFLINE";
+                dbConnStatus.className = "text-red font-mono";
+            }
+        }
+
+        // Initial poll
+        interrogateSecrets();
+        setInterval(interrogateSecrets, 5000);
+    </script>
+</body>
+</html>
