@@ -1,0 +1,77 @@
+services:
+  # ---------------------------------------------------
+  # 1. API SERVER: Telemetry secrets auditing engine
+  # ---------------------------------------------------
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: secretdock-app
+    # Mount secrets safely as secure read-only files in /run/secrets/
+    secrets:
+      - db_password
+      - api_key
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_NAME=secretdock
+      # NOTE: No database password environment variables here! Completely isolated!
+    expose:
+      - "5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+
+  # ---------------------------------------------------
+  # 2. DATABASE: PostgreSQL secure backend
+  # ---------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: secretdock-db
+    secrets:
+      - db_password
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=secretdock
+      # Instruct PostgreSQL to authenticate utilizing secure mounted file secret!
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+    volumes:
+      - db-secret-data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d secretdock"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    expose:
+      - "5432"
+    restart: always
+
+  # ---------------------------------------------------
+  # 3. FRONTEND GATEWAY: Nginx reverse proxy entrypoint
+  # ---------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: secretdock-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - app
+    restart: always
+
+# Define in-memory Docker secrets mapped directly from local text templates
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  api_key:
+    file: ./secrets/api_key.txt
+
+volumes:
+  db-secret-data:
