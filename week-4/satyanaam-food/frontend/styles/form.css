@@ -1,0 +1,123 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(120deg, #007bff, #ff4b5c);
+  background-size: 200% 100%;
+  animation: colorSlide 20s ease-in-out infinite;
+  overflow: hidden;
+}
+@keyframes colorSlide {
+  0% {
+    background-position: 100% 0; /* Start gradient from the right */
+  }
+  50% {
+    background-position: 0% 0; /* Slide the gradient to the left */
+  }
+  100% {
+    background-position: 100% 0; /* End the gradient at the right */
+  }
+}
+
+.signup-container,
+.login-container {
+  margin: auto 20px;
+  background: var(--bg-secondary);
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 400px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  transition: background 0.2s linear;
+}
+
+.signup-container h2,
+h1 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  text-align: center;
+}
+.form-group {
+  margin-bottom: 15px;
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  font-style: italic;
+  display: none;
+}
+.signup-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+}
+.signup-button:hover {
+  background-color: #0056b3;
+}
+.redirect-message {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 14px;
+}
+.redirect-message a {
+  color: #007bff;
+  text-decoration: none;
+}
+.redirect-message a:hover {
+  text-decoration: underline;
+}
+
+/* General styles */
+
+h1 {
+  margin-bottom: 1rem;
+  font-size: 24px;
+  color: var(--secondary-text-color);
+}
+
+/* Form styles */
+.form-group {
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+form button {
+  width: 100%;
+  padding: 0.7rem;
+  background: #8e44ad;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+form button:hover {
+  background: #6e3495;
+}
+
+#error-message {
+  font-weight: bold;
+  color: red;
+  font-size: 14px;
+  margin-top: 1rem;
+  font-style: italic;
+}
+
+h2,p{
+  color: var(--secondary-text-color);
+}
