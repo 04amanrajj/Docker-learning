@@ -1,0 +1,44 @@
+{
+    "restaurantDetails": {
+        "name": "SatyaNaam Food Center",
+        "tagline": "Experience the Authentic Taste of Tradition",
+        "address": {
+            "line1": "lalbagh,Reliance Smart Bazaar",
+            "city": "Nathdwara",
+            "state": "Rajasthan",
+            "zipcode": "313301"
+        },
+        "contact": {
+            "phone": "+91-9876543210",
+            "email": "contact@satyanaamrasoi.com"
+        },
+        "features": {
+            "pureVeg": true,
+            "authenticTaste": "100%",
+            "homeDeliveryAvailable": true
+        },
+        "operatingHours": {
+            "mondayToFriday": "10:00 AM - 10:00 PM",
+            "weekends": "10:00 AM - 11:00 PM"
+        },
+        "socialMedia": {
+            "facebook": "https://facebook.com/satyanaamrasoi",
+            "instagram": "https://instagram.com/satyanaamrasoi"
+        }
+    },
+    "menuCategories": [
+        "Thali",
+        "Salad",
+        "Papad",
+        "Fast Food",
+        "Rajasthani Special",
+        "Paneer Ka Swad",
+        "Dal Tadka",
+        "Sabzio Ka Khazana",
+        "Veg & Kofta",
+        "Gujarati",
+        "Garam Garam Tawa Se",
+        "Rice",
+        "Dahi & Raita"
+    ]
+}
