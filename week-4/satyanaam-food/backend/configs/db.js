@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
 require("dotenv").config();
 
-exports.dbconnection = mongoose.connect(process.env.MONGO_URI);
+const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/restaurent";
+exports.dbconnection = mongoose.connect(mongoUri);
+
