@@ -43,9 +43,38 @@ app.use("/admin", adminRoute);
 app.listen(port, "0.0.0.0", async () => {
   try {
     await dbconnection;
-    await client.connect();
-
     console.log("Connected to DB");
+
+    // Auto-seed database if collection is empty
+    try {
+      const { MenuModel } = require("./models/menu.model");
+      const menuData = require("./resources/menu.json");
+      const count = await MenuModel.countDocuments();
+      if (count === 0) {
+        console.log("🌱 [Database Initialization] Seeding empty menu collection on start...");
+        const allItems = [];
+        for (const category in menuData) {
+          const items = menuData[category];
+          for (const item of items) {
+            allItems.push({
+              name: item.name,
+              description: item.description || "Fresh and healthy restaurant item.",
+              price: item.price,
+              available: item.available !== undefined ? item.available : true,
+              rating: item.rating || 4.5,
+              category: item.category || category,
+              image: item.image || "https://i.pinimg.com/736x/1d/f6/36/1df6362c66dd293cc90ef0ede65b3818.jpg"
+            });
+          }
+        }
+        await MenuModel.insertMany(allItems);
+        console.log(`✓ [Database Initialization] Seeded ${allItems.length} menu items successfully.`);
+      }
+    } catch (seedErr) {
+      console.error(`⚠️ [Database Initialization] Failed to auto-seed: ${seedErr.message}`);
+    }
+
+    await client.connect();
     console.log("Connected to Redis");
 
     // Handle Redis errors and try reconnecting
