@@ -10,35 +10,24 @@ const { OrderModel } = require("../models/order.model");
 const { UserModel } = require("../models/user.model");
 const { client } = require("../configs/redis");
 
+// Helper to flush all cached menu items keys in Redis
+const flushMenuCache = async () => {
+  try {
+    const keys = await client.keys("menuitems:*");
+    if (keys && keys.length > 0) {
+      await client.del(keys);
+      logger.info(`🔄 [Cache Invalidation] Flushed ${keys.length} cached menu keys from Redis`);
+    }
+  } catch (err) {
+    logger.error(`⚠️ [Cache Invalidation] Redis flush failed: ${err.message}`);
+  }
+};
+
 // reset menu
 exports.resetMenu = async (req, res) => {
   try {
     if (req.role !== "admin")
       return res.status(403).send({ message: "You are not authorized" });
-
-    // creating backup stops reseting menu
-    // Create timestamped backup filename
-    // const date = new Date();
-    // const timestamp = `${String(date.getDate()).padStart(2, "0")}-${String(
-    //   date.getMonth() + 1
-    // ).padStart(2, "0")}-${date.getFullYear()}-${String(
-    //   date.getHours()
-    // ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(
-    //   date.getSeconds()
-    // ).padStart(2, "0")}`;
-    // const backupFilename = `backup-[${timestamp}].json`;
-
-    // let backupPath = path.join(
-    //   __dirname,
-    //   "../resources/backup",
-    //   backupFilename
-    // );
-
-    // const currentMenu = await MenuModel.find();
-
-    // // Write the backup file
-    // await fs.writeFile(backupPath, JSON.stringify(currentMenu, null, 2));
-    // logger.info(`Menu backup created successfully: ${backupFilename}`);
 
     // reset all items
     await MenuModel.collection.drop();
@@ -54,6 +43,10 @@ exports.resetMenu = async (req, res) => {
     }
     const newItems = await MenuModel.find();
     logger.warn(`performed menu reset`);
+    
+    // Invalidate Redis menu cache
+    await flushMenuCache();
+
     res.status(200).send({ message: "menu reset: ok", data: newItems });
   } catch (error) {
     logger.error(`Error resetting menu: ${error.stack || error.message}`);
@@ -77,6 +70,10 @@ exports.addMenuItem = async (req, res) => {
     const newDish = new MenuModel(payLoad);
     await newDish.save();
     logger.warn(`Added ${payLoad.name}`);
+
+    // Invalidate Redis menu cache
+    await flushMenuCache();
+
     res.status(200).send({ message: "new dish added" });
   } catch (error) {
     logger.error(`Error adding item: ${error.message}`);
@@ -98,6 +95,10 @@ exports.updateMenuItem = async (req, res) => {
     if (!dish) return res.status(404).send({ message: "dish not found" });
     logger.warn(`updated ${dish.name}`);
     await MenuModel.findOneAndUpdate({ _id }, payload);
+
+    // Invalidate Redis menu cache
+    await flushMenuCache();
+
     res.status(200).send({ message: "dish updated" });
   } catch (error) {
     logger.error(`Error updating item: ${error.message}`);
@@ -118,6 +119,10 @@ exports.deleteMenuItem = async (req, res) => {
     if (!dish) return res.status(404).send({ message: "dish not found" });
     logger.warn(`deleted ${dish.name}`);
     await MenuModel.findByIdAndDelete({ _id });
+
+    // Invalidate Redis menu cache
+    await flushMenuCache();
+
     res.status(200).send({ message: "dish deleted" });
   } catch (error) {
     logger.error(`Error deleting item: ${error.message}`);
@@ -125,6 +130,7 @@ exports.deleteMenuItem = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
+
 // get all orders
 exports.getOrders = async (req, res) => {
   try {
