@@ -48,5 +48,42 @@ defaultRoute.get("/health", async (req, res) => {
   }
 });
 
+defaultRoute.get("/cache-metrics", async (req, res) => {
+  try {
+    const isConnected = client.isOpen;
+    if (!isConnected) {
+      return res.status(503).send({ success: false, message: "Redis client disconnected" });
+    }
+
+    const keys = await client.keys("menuitems:*");
+    const rawInfo = await client.info();
+    
+    // Parse Redis memory info
+    const lines = rawInfo.split("\r\n");
+    const memorySection = {};
+    lines.forEach(line => {
+      if (line.includes("used_memory") || line.includes("instantaneous_ops") || line.includes("connected_clients")) {
+        const parts = line.split(":");
+        memorySection[parts[0]] = parts[1];
+      }
+    });
+
+    res.status(200).send({
+      success: true,
+      timestamp: new Date().toISOString(),
+      cachingEngine: "Redis Cache Gateway",
+      metrics: {
+        activeKeysCount: keys.length,
+        activeCachedKeys: keys,
+        redisStats: memorySection
+      }
+    });
+  } catch (error) {
+    logger.error(`Cache metrics error: ${error.message}`);
+    res.status(500).send({ success: false, message: error.message });
+  }
+});
+
 module.exports = { defaultRoute };
+
 
