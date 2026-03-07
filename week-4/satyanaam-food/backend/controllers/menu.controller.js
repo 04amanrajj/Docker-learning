@@ -41,7 +41,10 @@ exports.getMenuItem = async (req, res) => {
 
     if (cached_data) {
       logger.info("Data found on Redis");
-      res.status(200).send(JSON.parse(cached_data));
+      res.set("X-Cache", "HIT");
+      const parsed = JSON.parse(cached_data);
+      if (parsed.metadata) parsed.metadata.source = "Redis Cache Gateway";
+      res.status(200).send(parsed);
       return;
     }
 
@@ -58,6 +61,7 @@ exports.getMenuItem = async (req, res) => {
     const totalitems = await MenuModel.countDocuments(filter);
     const totalPages = Math.ceil(totalitems / limit);
     logger.info(`${user.name || "Some one"} visited menu.`);
+    
     // set data on redis
     await client.set(
       `menuitems:${JSON.stringify(filter)}`,
@@ -68,11 +72,13 @@ exports.getMenuItem = async (req, res) => {
           totalPages,
           totalitems,
           itemsPerPage: limit,
+          source: "MongoDB Relational Database"
         },
       }),
       { EX: 600 } //will expire after 10min
     );
 
+    res.set("X-Cache", "MISS");
     res.status(200).send({
       data: menuitems,
       metadata: {
@@ -80,8 +86,10 @@ exports.getMenuItem = async (req, res) => {
         totalPages,
         totalitems,
         itemsPerPage: limit,
+        source: "MongoDB Relational Database"
       },
     });
+
   } catch (error) {
     logger.error(`Error showing menu: ${error.message}`);
     console.log(error.message);

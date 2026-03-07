@@ -204,11 +204,28 @@ async function restaurent_menu(pagenumber = 1, params = {}) {
       resetFilter.style.display = "flex";
     }
     const finalFilters = { ...filters, ...params };
+
+    const startTime = performance.now();
     const response = await axios.get(`${baseURL}/menu?page=${pagenumber}`, {
       params: finalFilters,
     });
+    const endTime = performance.now();
+    const duration = (endTime - startTime).toFixed(1);
+
+    // Fetch telemetry metrics
+    const cacheHeader = response.headers["x-cache"] || (response.data.metadata?.source?.includes("Redis") ? "HIT" : "MISS");
+    const source = response.data.metadata?.source || "MongoDB Database";
+    
+    // Gorgeous glowing trace logs
+    const cacheColor = cacheHeader === "HIT" ? "#00ffcc" : "#ff3366";
+    console.log(
+      `%c 🍕 [Telemetry Tracker] GET /menu | Duration: ${duration}ms | Cache: ${cacheHeader} | Source: ${source} `,
+      `background: #181818; color: ${cacheColor}; font-size: 11px; font-weight: bold; border: 1px solid ${cacheColor}; padding: 4px 8px; border-radius: 4px; box-shadow: 0 0 8px ${cacheColor}33;`
+    );
+
     if (response.data.data.length == 0) restaurent_menu();
     const menuItems = response.data.data || [];
+
     console.log(menuItems);
     // group items by category
     const categories = {};
