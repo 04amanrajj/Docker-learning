@@ -5,6 +5,7 @@ const Router = require("express");
 const { logger } = require("../middlewares/userLogger.middleware");
 const { client } = require("../configs/redis");
 const mongoose = require("mongoose");
+const os = require("os");
 
 const defaultRoute = Router();
 defaultRoute.use(express.json());
@@ -37,6 +38,15 @@ defaultRoute.get("/health", async (req, res) => {
       status: isHealthy ? "UP" : "DOWN",
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
+      platform: process.platform,
+      system: {
+        freeMemory: (os.freemem() / 1024 / 1024).toFixed(1) + " MB",
+        totalMemory: (os.totalmem() / 1024 / 1024).toFixed(1) + " MB",
+        cpuLoad: os.loadavg()
+      },
+      process: {
+        memoryUsage: process.memoryUsage()
+      },
       services: {
         mongodb: mongoStatus,
         redis: redisStatus
@@ -47,6 +57,7 @@ defaultRoute.get("/health", async (req, res) => {
     res.status(500).send({ status: "ERROR", message: error.message });
   }
 });
+
 
 defaultRoute.get("/cache-metrics", async (req, res) => {
   try {
