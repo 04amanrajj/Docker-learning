@@ -78,6 +78,22 @@ services:
       satyanaam-backend:
         condition: service_healthy
 
+  # 5. Prometheus Metrics Scraper Node
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: satyanaam-prometheus
+    restart: always
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - satyanaam-net
+    depends_on:
+      satyanaam-backend:
+        condition: service_healthy
+
+
 networks:
   satyanaam-net:
     name: satyanaam-net
