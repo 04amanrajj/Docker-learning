@@ -95,6 +95,54 @@ defaultRoute.get("/cache-metrics", async (req, res) => {
   }
 });
 
+defaultRoute.get("/metrics", async (req, res) => {
+  try {
+    let keysCount = 0;
+    try {
+      if (client.isOpen) {
+        const keys = await client.keys("menuitems:*");
+        keysCount = keys.length;
+      }
+    } catch (e) {
+      // Redis offline or unreachable
+    }
+
+    const memory = process.memoryUsage();
+    const loadAvg = os.loadavg();
+    const uptime = process.uptime();
+
+    // Generate Prometheus exposition format metrics text
+    let prometheusMetrics = "";
+    
+    prometheusMetrics += `# HELP process_uptime_seconds Uptime of the Express.js API server in seconds.\n`;
+    prometheusMetrics += `# TYPE process_uptime_seconds gauge\n`;
+    prometheusMetrics += `process_uptime_seconds ${uptime}\n\n`;
+
+    prometheusMetrics += `# HELP process_memory_rss_bytes Resident Set Size memory bytes utilized by the Node.js process.\n`;
+    prometheusMetrics += `# TYPE process_memory_rss_bytes gauge\n`;
+    prometheusMetrics += `process_memory_rss_bytes ${memory.rss}\n\n`;
+
+    prometheusMetrics += `# HELP process_memory_heap_used_bytes Heap memory bytes currently in use by Node.js runtime.\n`;
+    prometheusMetrics += `# TYPE process_memory_heap_used_bytes gauge\n`;
+    prometheusMetrics += `process_memory_heap_used_bytes ${memory.heapUsed}\n\n`;
+
+    prometheusMetrics += `# HELP system_cpu_load_ratio Standard 1-minute system CPU load average.\n`;
+    prometheusMetrics += `# TYPE system_cpu_load_ratio gauge\n`;
+    prometheusMetrics += `system_cpu_load_ratio ${loadAvg[0]}\n\n`;
+
+    prometheusMetrics += `# HELP redis_active_cache_keys_total Total count of menu cache keys currently stored inside Redis.\n`;
+    prometheusMetrics += `# TYPE redis_active_cache_keys_total gauge\n`;
+    prometheusMetrics += `redis_active_cache_keys_total ${keysCount}\n`;
+
+    res.set("Content-Type", "text/plain; version=0.0.4; charset=utf-8");
+    res.status(200).send(prometheusMetrics);
+  } catch (error) {
+    logger.error(`Prometheus metrics generation error: ${error.message}`);
+    res.status(500).send(`# ERROR: ${error.message}`);
+  }
+});
+
 module.exports = { defaultRoute };
+
 
 
