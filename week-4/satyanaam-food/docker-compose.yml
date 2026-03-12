@@ -93,6 +93,22 @@ services:
       satyanaam-backend:
         condition: service_healthy
 
+  # 6. Grafana Dashboard Telemetry Node
+  grafana:
+    image: grafana/grafana:10.0.3
+    container_name: satyanaam-grafana
+    restart: always
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    ports:
+      - "3000:3000"
+    networks:
+      - satyanaam-net
+    depends_on:
+      prometheus:
+        condition: service_started
+
+
 
 networks:
   satyanaam-net:
