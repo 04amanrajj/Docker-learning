@@ -5,3 +5,9 @@ npm-debug.log
 Dockerfile
 .dockerignore
 logs/*.log
+.env
+.env.production
+.env.local
+.DS_Store
+README.md
+
