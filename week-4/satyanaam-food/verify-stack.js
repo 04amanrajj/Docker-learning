@@ -8,7 +8,8 @@
 const http = require("http");
 
 const TARGET_HOST = process.env.API_HOST || "localhost";
-const TARGET_PORT = process.env.API_PORT || "4500";
+const TARGET_PORT = process.env.API_PORT || "8080";
+const PATH_PREFIX = process.env.PATH_PREFIX || "/api";
 
 const makeRequest = (options) => {
   return new Promise((resolve, reject) => {
@@ -32,18 +33,18 @@ const makeRequest = (options) => {
 async function runVerification() {
   console.log("==============================================================================");
   console.log("🔍 [DevOps Integration Testing] Verifying Satyanaam Food Stack Integrity...");
-  console.log(`📡 Connecting to: http://${TARGET_HOST}:${TARGET_PORT}`);
+  console.log(`📡 Connecting via Gateway: http://${TARGET_HOST}:${TARGET_PORT}${PATH_PREFIX}`);
   console.log("==============================================================================");
 
   let passed = true;
 
   // Test 1: Check System Health endpoint
   try {
-    console.log("\n🧪 Test 1: Verifying Backend Core Health Indicators (/health)...");
+    console.log(`\n🧪 Test 1: Verifying Backend Core Health Indicators (${PATH_PREFIX}/health)...`);
     const res = await makeRequest({
       hostname: TARGET_HOST,
       port: TARGET_PORT,
-      path: "/health",
+      path: `${PATH_PREFIX}/health`,
       method: "GET",
     });
 
@@ -63,13 +64,14 @@ async function runVerification() {
 
   // Test 2: Check Menu Loading & Caching Telemetry
   try {
-    console.log("\n🧪 Test 2: Loading Menu & Verifying Cache Headers (/menu)...");
+    console.log(`\n🧪 Test 2: Loading Menu & Verifying Cache Headers (${PATH_PREFIX}/menu)...`);
     const res = await makeRequest({
       hostname: TARGET_HOST,
       port: TARGET_PORT,
-      path: "/menu?page=1&limit=5",
+      path: `${PATH_PREFIX}/menu?page=1&limit=5`,
       method: "GET",
     });
+
 
     const cacheHeader = res.headers["x-cache"];
     const source = res.body?.metadata?.source;
