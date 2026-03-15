@@ -22,7 +22,7 @@ const tostBottomEnd = Swal.mixin({
 
 async function navbar() {
   try {
-    const response = await axios.get(baseURL);
+    const response = await axios.get(baseURL + "/");
     const restaurent = response.data.data.restaurantDetails;
     const title = document.querySelector("title");
     title.textContent += ` | ${restaurent.name}`;
@@ -275,7 +275,7 @@ async function logout() {
 
 async function cover_page() {
   try {
-    const response = await axios.get(baseURL);
+    const response = await axios.get(baseURL + "/");
     const restaurent = response.data.data.restaurantDetails;
     const coverPage = document.querySelector(".cover-page");
     coverPage.innerHTML += `<h1>${restaurent.name}<span class="restaurant-tagline">${restaurent.tagline}</span></h1>`;
@@ -290,7 +290,7 @@ async function cover_page() {
 
 async function page_footer() {
   try {
-    const response = await axios.get(baseURL);
+    const response = await axios.get(baseURL + "/");
     const restaurent = response.data.data.restaurantDetails;
     const footer = document.querySelector("footer");
     footer.innerHTML = `

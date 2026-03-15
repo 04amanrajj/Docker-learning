@@ -13,7 +13,7 @@ let filters = {};
 async function restaurent_info() {
   try {
     loading();
-    const response = await axios.get(baseURL);
+    const response = await axios.get(baseURL + "/");
     stopLoading();
     const restaurantDetails = document.querySelector(".details-container");
 
