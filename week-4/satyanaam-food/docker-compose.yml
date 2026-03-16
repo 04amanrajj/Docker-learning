@@ -78,11 +78,11 @@ services:
 
   # 5. Prometheus Metrics Scraper Node
   prometheus:
-    image: prom/prometheus:v2.45.0
+    build:
+      context: ./prometheus
+      dockerfile: Dockerfile
     container_name: satyanaam-prometheus
     restart: always
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
     networks:
@@ -93,11 +93,11 @@ services:
 
   # 6. Grafana Dashboard Telemetry Node
   grafana:
-    image: grafana/grafana:10.0.3
+    build:
+      context: ./grafana
+      dockerfile: Dockerfile
     container_name: satyanaam-grafana
     restart: always
-    volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning
     ports:
       - "3000:3000"
     networks:
