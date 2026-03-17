@@ -61,3 +61,25 @@ A natural 30-commit DevOps history was established, stretching from **February 2
 *   `Mar 01-05` — Redis persistence, Mongoose healthchecks, and auto-seeding.
 *   `Mar 06-10` — Caching invalidation, glowing console tracers, and security headers.
 *   `Mar 11-15` — Prometheus / Grafana observability, connect retries, shell orchestration, and E2E integration tests.
+
+
+## ⚡ Production Quick Start (Pre-built Stack)
+
+For quick verification, you can boot up the production-hardened stack in seconds using pre-built, optimized images pulled directly from the **GitHub Container Registry (GHCR)**.
+
+### 🚀 Spin Up the Stack
+Run the following command to download and launch the production containers in detached mode:
+```bash
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Once initialized, open your browser and navigate to the Nginx gateway:
+👉 **[http://localhost:8080](http://localhost:8080)**
+
+---
+
+### ⚠️ Limitations in Production Quick-Start Mode
+> [!NOTE]
+> The `docker-compose.prod.yml` configuration is an ultra-lightweight deployment profile designed for rapid application verification.
+> * **Telemetry Omitted:** Real-time Prometheus metrics scraping and Grafana visualization dashboards are excluded from this profile to minimize resource consumption.
+> * **Standalone API:** If you require end-to-end active telemetries and live metric visualizers, please boot the environment using the primary `./manage.sh up` flow.
