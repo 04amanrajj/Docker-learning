@@ -4,6 +4,7 @@ const timelineData = {
         title: "🚀 Week 1: Docker Basics & Container Fundamentals",
         subtitle: "Building the absolute foundations of container image architecture",
         description: "My DevOps journey started by mastering single-service containerization, understanding the layers inside a Dockerfile, and learning the Docker engine CLI commands.",
+        folderUrl: "https://github.com/04amanrajj/Docker-learning/tree/main/week-1",
         bullets: [
             { icon: "🐳", title: "Docker CLI Mastery", text: "Mastered building, running, mapping ports, inspecting, and purging container images." },
             { icon: "📄", title: "Dockerfile Blueprinting", text: "Learned core keywords: FROM, WORKDIR, COPY, RUN, EXPOSE, CMD, and ENTRYPOINT." },
@@ -15,6 +16,7 @@ const timelineData = {
         title: "📦 Week 2: Build Optimizations & Configurations",
         subtitle: "Crafting lightweight, secure, and production-ready images",
         description: "Optimized container sizes, mapped dynamic environment variables, and configured reverse proxies for multi-environment scaling.",
+        folderUrl: "https://github.com/04amanrajj/Docker-learning/tree/main/week-2",
         bullets: [
             { icon: "✂️", title: "Multi-Stage Dockerfiles", text: "Split compiles into a separate 'builder' container to keep final images minimal." },
             { icon: "🔒", title: "Non-Root Privilege Settings", text: "Enhanced container security by executing application processes under unprivileged 'node' users." },
@@ -26,6 +28,7 @@ const timelineData = {
         title: "🌐 Week 3: Orchestrations & Secure Subnets",
         subtitle: "Linking services and establishing hard-disk persistences",
         description: "Orchestrated cohesive multi-container systems, built secure virtual subnets, and established hard-drive persistent mappings.",
+        folderUrl: "https://github.com/04amanrajj/Docker-learning/tree/main/week-3",
         bullets: [
             { icon: "🛠️", title: "Docker Compose Engines", text: "Orchestrated Nginx, Node.js API, MongoDB, and Redis with single command boot-ups." },
             { icon: "💾", title: "Named Storage Volumes", text: "Mapped persistent local host storage directories to databases so data survives restarts." },
@@ -37,6 +40,7 @@ const timelineData = {
         title: "🏆 Week 4: Culminations & Active Observability",
         subtitle: "Achieving fully observable, resilient, corporate architectures",
         description: "Engineered self-healing architectures, proxy-aware securities, Redis cache-invalidations, and Prometheus/Grafana monitors.",
+        folderUrl: "https://github.com/04amanrajj/Docker-learning/tree/main/week-4",
         bullets: [
             { icon: "🔌", title: "Self-Healing DB Connections", text: "Implemented connect-retry loops so backend waits for MongoDB database boots." },
             { icon: "⚡", title: "Redis Cache Invalidation", text: "Configured triggers to auto-flush Redis cache categories on administrative write mutations." },
@@ -118,6 +122,12 @@ function switchWeek(weekNum) {
             <p>${data.description}</p>
             <div class="timeline-bullets">
                 ${bulletsHtml}
+            </div>
+            <div class="timeline-action-container">
+                <a href="${data.folderUrl}" target="_blank" class="timeline-action-btn">
+                    <span>📂 Explore Week ${weekNum} Directory on GitHub</span>
+                    <span class="action-arrow">➔</span>
+                </a>
             </div>
         </div>
     `;
